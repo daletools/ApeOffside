@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,7 +25,10 @@ SECRET_KEY = 'django-insecure-ds7)4wa^a5ri&#e7#lay974xi5e=2k_tb_tsm#o5ews58xj!k&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '127.0.0.0',
+    '0.0.0.0'
+]
 
 
 # Application definition
@@ -135,3 +137,4 @@ CORS_ALLOWED_ORIGINS = [  #this should point to react frontend
 from decouple import config
 
 API_KEY = config('API_KEY')
+ODDS_URL = config('ODDS_URL')

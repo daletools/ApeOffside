@@ -1,6 +1,8 @@
+from http.client import responses
+
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
-from decouple import config
+from django.conf import settings
 import requests
 from django.template.defaulttags import querystring
 
@@ -13,9 +15,8 @@ def default(request):
 def fetch_nba_statistics(request):
     url = "https://api-nba-v1.p.rapidapi.com/players/statistics"
     querystring = {"game": "8133"}
-    API_KEY = config('API_KEY')
     headers = {
-        "x-rapidapi-key": API_KEY,
+        "x-rapidapi-key": "TODO: get historical stats api key",
         "x-rapidapi-host": "api-nba-v1.p.rapidapi.com"
     }
     response = requests.get(url, headers=headers, params=querystring)
@@ -24,6 +25,12 @@ def fetch_nba_statistics(request):
     return JsonResponse(response.json())
 
 def fetch_sports(request):
-    url = 'https://api.the-odds-api.com/v4/sports/?apiKey=' + config('API_KEY')
+    url = f'{settings.ODDS_URL}/v4/sports/?apiKey={settings.API_KEY}'
     response = requests.get(url)
     return JsonResponse(response.json(), safe=False)
+
+def fetch_current_games(request, sport):
+    url = f'{settings.ODDS_URL}/v4/sports/{sport}/events?apiKey={settings.API_KEY}'
+    response = requests.get(url)
+    return JsonResponse(response.json(), safe=False)
+
