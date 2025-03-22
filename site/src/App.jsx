@@ -2,12 +2,17 @@ import { useState } from 'react'
 import reactLogo from './assets/images/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
+import OddsViewer from './components/features/OddsViewer';
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
     <>
+        <div className="App">
+            <h1>NBA Betting Odds</h1>
+            <OddsViewer />
+        </div>
       <div>
         <a href="https://vite.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />
