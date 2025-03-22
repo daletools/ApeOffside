@@ -5,9 +5,12 @@ from django.test import TestCase
 # Create your tests here.
 from django.test import TestCase, RequestFactory
 from django.conf import settings
-from core.views import *
+
 import requests
 import requests_mock
+
+from core.views import fetch_sports, fetch_current_games
+
 
 class FetchSportsTestCase(TestCase):
     def setUp(self):
