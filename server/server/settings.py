@@ -26,6 +26,8 @@ SECRET_KEY = 'django-insecure-ds7)4wa^a5ri&#e7#lay974xi5e=2k_tb_tsm#o5ews58xj!k&
 DEBUG = True
 
 ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
     '127.0.0.0',
     '0.0.0.0'
 ]
@@ -131,10 +133,11 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [  #this should point to react frontend
-    "http://localhost:5173",
+    "http://localhost:5173",  # Allow requests from your React app
+    "http://127.0.0.1:5173",  # Allow requests from 127.0.0.1 (optional)
 ]
 
 from decouple import config
 
 API_KEY = config('API_KEY')
-ODDS_URL = config('ODDS_URL')
+ODDS_URL = ODDS_URL = "https://api.the-odds-api.com"
