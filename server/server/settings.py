@@ -140,4 +140,3 @@ CORS_ALLOWED_ORIGINS = [  #this should point to react frontend
 from decouple import config
 
 API_KEY = config('API_KEY')
-ODDS_URL = ODDS_URL = "https://api.the-odds-api.com"
