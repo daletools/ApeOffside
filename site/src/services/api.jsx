@@ -30,6 +30,6 @@ export const fetchCurrentGames = async (sport) => {
 };
 
 export const fetchOddsAPI = async (sport) => {
-  const response = await api.get(`/core/odds/${sport}`);
+  const response = await api.get(`/odds/${sport}/`);
   return response.data;
 };
