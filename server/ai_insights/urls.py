@@ -1,8 +1,10 @@
-#TODO: Add URL to test Gemini AI API and ensure it is working
-from django.contrib import admin
 from django.urls import path
+
 from . import views
 
+app_name = 'ai_insights'
+
 urlpatterns = [
-    path('gemini', views.generate, name='generate'),
+    # Chatbot API endpoint
+    path('chatbot/', views.chatbot_view, name='chatbot'),
 ]
