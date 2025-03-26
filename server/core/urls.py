@@ -16,4 +16,7 @@ urlpatterns = [
     path("odds/<str:sport>/", views.fetch_odds),
     path('', include('ai_insights.urls')),
 ]
+<<<<<<< HEAD
+>>>>>>> Brayden_Function_ConnectGeminiAI
+=======
 >>>>>>> Brayden_Function_ConnectGeminiAI

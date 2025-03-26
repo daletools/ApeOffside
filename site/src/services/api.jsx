@@ -31,9 +31,12 @@ export const fetchCurrentGames = async (sport) => {
 
 export const fetchOddsAPI = async (sport) => {
 <<<<<<< HEAD
+<<<<<<< HEAD
   const response = await api.get(`/odds/${sport}/`);
   return response.data;
 =======
+=======
+>>>>>>> Brayden_Function_ConnectGeminiAI
     const response = await api.get(`/core/odds/${sport}`);
     return response.data;
 };
@@ -47,5 +50,8 @@ export const fetchChatResponse = async (message) => {
         console.error("Error fetching chat response:", error);
     }
 
+<<<<<<< HEAD
+>>>>>>> Brayden_Function_ConnectGeminiAI
+=======
 >>>>>>> Brayden_Function_ConnectGeminiAI
 };
