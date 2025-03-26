@@ -3,6 +3,7 @@ import reactLogo from './assets/images/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import OddsViewer from './components/features/OddsViewer';
+import Chatbot from "./components/features/Chatbot.jsx";``
 
 function App() {
   const [count, setCount] = useState(0)
@@ -12,6 +13,7 @@ function App() {
         <div className="App">
             <h1>NBA Betting Odds</h1>
             <OddsViewer />
+            <Chatbot />
         </div>
       <div>
         <a href="https://vite.dev" target="_blank">
