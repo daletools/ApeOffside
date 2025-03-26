@@ -13,3 +13,4 @@ urlpatterns = [
     path("odds/<str:sport>/", views.fetch_odds),
     path('', include('ai_insights.urls')),
 ]
+

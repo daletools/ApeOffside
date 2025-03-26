@@ -43,4 +43,5 @@ export const fetchChatResponse = async (message) => {
         console.error("Error fetching chat response:", error);
     }
 
+
 };
