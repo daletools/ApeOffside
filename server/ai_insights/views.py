@@ -6,9 +6,9 @@ from google import genai
 from google.genai import types
 
 
-@csrf_exempt  # Disable CSRF for simplicity; for production, use CSRF tokens
+#@csrf_exempt  # Disable CSRF for simplicity; for production, use CSRF tokens
 def chatbot_view(request):
-    if request.method == 'GET':  # Changed from POST to GET
+    if request.method == 'GET':
         try:
             # Retrieve the user message from query parameters
             user_message = request.GET.get("message")
