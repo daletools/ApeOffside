@@ -14,7 +14,9 @@ createRoot(document.getElementById('root')).render(
             This is a test component
             {/* <ApiTestBlock /> */}
             <OddsViewer/>
-        <Chatbot/>
+        </div>
+        <div>
+            <Chatbot/>
         </div>
     </StrictMode>,
 )
