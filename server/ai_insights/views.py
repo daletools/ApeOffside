@@ -10,8 +10,13 @@ from google.genai import types
 def chatbot_view(request):
     if request.method == 'GET':
         try:
+
+            print('Trying to retrieve user message.')
+
             # Retrieve the user message from query parameters
             user_message = request.GET.get("message")
+
+            print('user_message', user_message)
 
             # Validate if the message is provided
             if not user_message:
