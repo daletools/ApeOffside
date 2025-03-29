@@ -4,28 +4,31 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from google import genai
 from google.genai import types
+from django.conf import settings
+from server.settings import GEMINI_KEY
 
 
-@csrf_exempt  # Disable CSRF for simplicity; for production, use CSRF tokens
-def chatbot_view(request):
-    if request.method == 'GET':  # Changed from POST to GET
+# @csrf_exempt  # Disable CSRF for simplicity; for production, use CSRF tokens
+def gemini_view(request):
+    if request.method == 'GET':
         try:
+            print('Trying to retrieve user message.')
+
             # Retrieve the user message from query parameters
             user_message = request.GET.get("message")
+
+            print('user_message', user_message)
 
             # Validate if the message is provided
             if not user_message:
                 return JsonResponse({"response": "Message parameter is missing."}, status=400)
 
-            # Retrieve API key from environment
-            api_key = os.environ.get("GEMINI_API_KEY")
-
             # Validate API key
-            if not api_key:
+            if not GEMINI_KEY:
                 return JsonResponse({"response": "API key is missing or invalid."}, status=500)
 
             # Initialize Google GenAI client
-            client = genai.Client(api_key=api_key)
+            client = genai.Client(api_key=GEMINI_KEY)
 
             # Prepare the request for the Gemini model
             model = "gemini-2.0-flash"

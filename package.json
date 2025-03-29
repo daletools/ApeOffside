@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "react": "^19.0.0",
+    "react-chatbotify": "^2.0.0-beta.32",
     "react-dom": "^19.0.0"
   }
 }

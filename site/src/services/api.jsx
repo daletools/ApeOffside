@@ -30,14 +30,14 @@ export const fetchCurrentGames = async (sport) => {
 };
 
 export const fetchOddsAPI = async (sport) => {
-    const response = await api.get(`/core/odds/${sport}`);
+    const response = await api.get(`/odds/${sport}`);
     return response.data;
 };
 
 export const fetchChatResponse = async (message) => {
     // Using GET request to fetch chat response
     try {
-        const response = await api.get(`insights/chatbot/?message=${message}`);
+        const response = await api.get(`/insights/chatbot/?message=${message}`);
         return response.data;
     } catch (error) {
         console.error("Error fetching chat response:", error);
