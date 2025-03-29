@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import {fetchChatResponse} from "../../services/api.jsx";
 
-const Chatbot = () => {
+const Gemini = () => {
     const [message, setMessage] = useState("");
     const [response, setResponse] = useState("");
     const [loading, setLoading] = useState(false);
@@ -33,6 +33,7 @@ const Chatbot = () => {
                     onChange={handleChange}
                     placeholder="Ask me a question!"
                 />
+                <br/><br/>
                 <button type="submit" disabled={loading}>
                     Send
                 </button>
@@ -46,4 +47,4 @@ const Chatbot = () => {
     );
 };
 
-export default Chatbot;
+export default Gemini;
