@@ -10,7 +10,7 @@ def fetch_odds(request, sport):
         "apiKey": settings.API_KEY,
         "regions": "us",
         "markets": "h2h",
-        "bookmakers": "draftkings",  # Limit to one bookmaker
+     #Testing Arbitrage   "bookmakers": "draftkings",  # Limit to one bookmaker
         "oddsFormat": "decimal"
     }
 
