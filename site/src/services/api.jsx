@@ -37,7 +37,7 @@ export const fetchOddsAPI = async (sport) => {
 export const fetchChatResponse = async (message) => {
     // Using GET request to fetch chat response
     try {
-        const response = await api.get(`/insights/Chatbot/?message=${message}`);
+        const response = await api.get(`/insights/chatbot/?message=${message}`);
         return response.data;
     } catch (error) {
         console.error("Error fetching chat response:", error);

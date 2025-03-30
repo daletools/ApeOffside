@@ -8,11 +8,10 @@ from django.conf import settings
 from server.settings import GEMINI_KEY
 
 
-#@csrf_exempt  # Disable CSRF for simplicity; for production, use CSRF tokens
-def chatbot_view(request):
+# @csrf_exempt  # Disable CSRF for simplicity; for production, use CSRF tokens
+def gemini_view(request):
     if request.method == 'GET':
         try:
-
             print('Trying to retrieve user message.')
 
             # Retrieve the user message from query parameters
@@ -23,8 +22,6 @@ def chatbot_view(request):
             # Validate if the message is provided
             if not user_message:
                 return JsonResponse({"response": "Message parameter is missing."}, status=400)
-
-            # Retrieve API key from environment
 
             # Validate API key
             if not GEMINI_KEY:

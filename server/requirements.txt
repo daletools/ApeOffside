@@ -3,3 +3,4 @@ requests~=2.32.3
 requests-mock~=1.12.1
 python-decouple~=3.8
 google~=3.0.0
+google-genai~=1.8.0
