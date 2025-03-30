@@ -140,3 +140,4 @@ CORS_ALLOWED_ORIGINS = [  #this should point to react frontend
 from decouple import config
 
 API_KEY = config('API_KEY')
+GEMINI_KEY = config('GEMINI_KEY')
