@@ -9,7 +9,7 @@ from server.settings import GEMINI_KEY
 from django.contrib.sessions.backends.cache import SessionStore
 
 
-# @csrf_exempt  # Disable CSRF for simplicity; for production, use CSRF tokens
+@csrf_exempt  # Disable CSRF for simplicity; for production, use CSRF tokens
 def gemini_view(request):
     if request.method == 'GET':
         try:
@@ -29,27 +29,22 @@ def gemini_view(request):
                 return JsonResponse({"response": "API key is missing or invalid."}, status=500)
 
             # Initialize conversation history
-            x = request.session.get('conversation_history', [])
+            conversation_history = request.session.get('conversation_history', [])
 
-            x.append({"role": "user", "message": user_message})
+            # Add the user message to the conversation
+            conversation_history.append({"role": "user", "message": user_message})
 
-            # Prepare the conversation history for the API
-            y = [
+            # Convert the conversation history into GenAI's content format
+            genai_contents = [
                 types.Content(role=entry["role"], parts=[types.Part.from_text(text=entry["message"])])
-                for entry in x
+                for entry in conversation_history
             ]
 
-            # Initialize Google GenAI client
+            # Initialize the Google GenAI client
             client = genai.Client(api_key=GEMINI_KEY)
 
-            # Prepare the request for the Gemini model
+            # Prepare the Gemini request for generation
             model = "gemini-2.0-flash"
-            contents = [
-                types.Content(
-                    role="user",
-                    parts=[types.Part.from_text(text=user_message)],
-                ),
-            ]
             generate_content_config = types.GenerateContentConfig(
                 temperature=1,
                 top_p=0.95,
@@ -58,32 +53,39 @@ def gemini_view(request):
                 response_mime_type="text/plain",
             )
 
-            # Generate content from the Gemini API
+            # Generate content using the Gemini API
+            bot_response = ""
             try:
-                bot_response = ""
                 for chunk in client.models.generate_content_stream(
                         model=model,
-                        contents=contents,
+                        contents=genai_contents,
                         config=generate_content_config,
                 ):
                     bot_response += chunk.text
+                # Add bot response to conversation history
+                conversation_history.append({"role": "bot", "message": bot_response})
 
-                    # Add chatbot response to conversation history
-                    x.append({
-                        "role": "bot", "message": bot_response})
+                # Save updated history to the session
+                request.session["conversation_history"] = conversation_history
+                request.session.modified = True  # Explicitly mark the session as modified
 
-                    # Save updated history in the session
-                    request.session["x"] = x
-
+                # Return the bot response
                 return JsonResponse({"response": bot_response})
+
             except Exception as e:
                 return JsonResponse({"response": f"Gemini API error: {str(e)}"}, status=500)
-
-            # Return the chatbot's response
 
         except Exception as e:
             # Handle errors and return to the frontend
             return JsonResponse({"response": f"An error occurred: {str(e)}"}, status=500)
 
     # For invalid methods
+    return JsonResponse({"response": "Invalid request method"}, status=400)
+
+@csrf_exempt
+def get_conversation_history(request):
+    if request.method == 'GET':
+        conversation_history = request.session.get('conversation_history', [])
+        return JsonResponse({"response": conversation_history}, status=200)
+
     return JsonResponse({"response": "Invalid request method"}, status=400)
