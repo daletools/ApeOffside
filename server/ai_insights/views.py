@@ -62,7 +62,6 @@ def gemini_view(request):
                         config=generate_content_config,
                 ):
                     bot_response += chunk.text
-
                 # Add bot response to conversation history
                 conversation_history.append({"role": "bot", "message": bot_response})
 
