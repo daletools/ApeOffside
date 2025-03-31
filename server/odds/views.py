@@ -2,6 +2,8 @@ from django.http import JsonResponse, HttpResponse
 from django.conf import settings
 import requests
 
+from odds.utils.view_helpers import parse_event_odds
+
 ODDS_BASE_URL = "https://api.the-odds-api.com"
 #Fetch Odds Reduced View draftkings ONLY for test purposes
 def fetch_odds(request, sport):
@@ -61,34 +63,8 @@ def fetch_event_odds(request, sport, event_id, markets):
             )
 
         full_data = response.json()
+        parsed_data = parse_event_odds(full_data)
 
-        parsed_data = {
-            'id': full_data['id'],
-            'sport_key': full_data['sport_key'],
-            'sport_title': full_data['sport_title'],
-            'commence_time': full_data['commence_time'],
-            'home_team': full_data['home_team'],
-            'away_team': full_data['away_team'],
-            'market': full_data['bookmakers'][0]['markets'][0]['key'],
-            'bookmaker': {},
-            'player': {}
-        }
-        for bookmaker in full_data['bookmakers']:
-            parsed_data['bookmaker'][bookmaker['key']] = {
-                'title': bookmaker['title'],
-                'last_update': bookmaker['markets'][0]['last_update'],
-            }
-            for outcome in bookmaker['markets'][0]['outcomes']:
-                if outcome['description'] not in parsed_data['player']:
-                    print('Adding player {}'.format(outcome['description']))
-                    parsed_data['player'][outcome['description']] = {}
-                if bookmaker['title'] not in parsed_data['player'][outcome['description']]:
-                    parsed_data['player'][outcome['description']][bookmaker['title']] = {}
-                curr = parsed_data['player'][outcome['description']][bookmaker['title']]
-                curr[outcome['name']] = {
-                    'price': outcome['price'],
-                    'point': outcome['point'],
-                }
         return JsonResponse(parsed_data, safe=False)
 
     except Exception:
