@@ -2,6 +2,8 @@ from django.http import JsonResponse, HttpResponse
 from django.conf import settings
 import requests
 
+from odds.utils.view_helpers import parse_event_odds
+
 ODDS_BASE_URL = "https://api.the-odds-api.com"
 #Fetch Odds Reduced View draftkings ONLY for test purposes
 def fetch_odds(request, sport):
@@ -9,8 +11,8 @@ def fetch_odds(request, sport):
     params = {
         "apiKey": settings.API_KEY,
         "regions": "us",
-        "markets": "h2h",
-        "bookmakers": "draftkings",  # Limit to one bookmaker
+        "markets": "player_points",
+        "bookmakers": "draftkings",
         "oddsFormat": "decimal"
     }
 
@@ -45,6 +47,25 @@ def fetch_odds(request, sport):
             trimmed.append(event)
 
         return JsonResponse(trimmed, safe=False)
+
+    except Exception:
+        return JsonResponse({'error': 'An unexpected error occurred'}, status=500)
+
+#GET /v4/sports/{sport}/events/{eventId}/odds?apiKey={apiKey}&regions={regions}&markets={markets}&dateFormat={dateFormat}&oddsFormat={oddsFormat}
+def fetch_event_odds(request, sport, event_id, markets):
+    url=url = f"{ODDS_BASE_URL}/v4/sports/{sport}/events/{event_id}/odds?apiKey={settings.API_KEY}&regions=us&markets={markets}"
+    try:
+        response = requests.get(url)
+        if response.status_code != 200:
+            return JsonResponse(
+                {'error': 'Failed to fetch odds', 'details': response.text},
+                status=response.status_code
+            )
+
+        full_data = response.json()
+        parsed_data = parse_event_odds(full_data)
+
+        return JsonResponse(parsed_data, safe=False)
 
     except Exception:
         return JsonResponse({'error': 'An unexpected error occurred'}, status=500)
