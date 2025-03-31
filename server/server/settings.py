@@ -44,8 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core',
     'odds',
-    'ai_insights',
-    'arbitrage'
+    'ai_insights'
 ]
 
 MIDDLEWARE = [

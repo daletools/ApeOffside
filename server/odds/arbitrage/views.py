@@ -3,7 +3,8 @@ from django.http import JsonResponse
 from django.conf import settings
 import requests
 
-from .utils import find_arbitrage
+from odds.arbitrage.utils import find_arbitrage
+
 
 
 ODDS_BASE_URL = "https://api.the-odds-api.com"
