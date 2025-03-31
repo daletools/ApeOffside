@@ -6,6 +6,7 @@ from google import genai
 from google.genai import types
 from django.conf import settings
 from server.settings import GEMINI_KEY
+from django.contrib.sessions.backends.cache import SessionStore
 
 
 # @csrf_exempt  # Disable CSRF for simplicity; for production, use CSRF tokens
@@ -26,6 +27,17 @@ def gemini_view(request):
             # Validate API key
             if not GEMINI_KEY:
                 return JsonResponse({"response": "API key is missing or invalid."}, status=500)
+
+            # Initialize conversation history
+            x = request.session.get('conversation_history', [])
+
+            x.append({"role": "user", "message": user_message})
+
+            # Prepare the conversation history for the API
+            y = [
+                types.Content(role=entry["role"], parts=[types.Part.from_text(text=entry["message"])])
+                for entry in x
+            ]
 
             # Initialize Google GenAI client
             client = genai.Client(api_key=GEMINI_KEY)
@@ -55,6 +67,14 @@ def gemini_view(request):
                         config=generate_content_config,
                 ):
                     bot_response += chunk.text
+
+                    # Add chatbot response to conversation history
+                    x.append({
+                        "role": "bot", "message": bot_response})
+
+                    # Save updated history in the session
+                    request.session["x"] = x
+
                 return JsonResponse({"response": bot_response})
             except Exception as e:
                 return JsonResponse({"response": f"Gemini API error: {str(e)}"}, status=500)

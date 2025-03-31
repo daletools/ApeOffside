@@ -141,3 +141,6 @@ from decouple import config
 
 GEMINI_KEY = config('GEMINI_KEY')
 API_KEY = config('API_KEY')
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
