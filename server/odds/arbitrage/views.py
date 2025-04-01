@@ -50,57 +50,39 @@ def arbitrage_opportunities(request):
 
 def calculate_arbitrage_stakes(request):
     try:
-        try:
-            data = json.loads(request.body)
-        except:
-            return JsonResponse({"error": "Bad JSON"}, status=400)
+        data = json.loads(request.body)
+        odds_team1 = float(data.get("odds_team1"))
+        odds_team2 = float(data.get("odds_team2"))
+        total_stake = float(data.get("stake"))
 
-        o1 = data.get("odds_team1")
-        o2 = data.get("odds_team2")
-        stake = data.get("stake")
-
-        if o1 is None or o2 is None or stake is None:
-            return JsonResponse({"error": "Missing fields"}, status=400)
-
-        try:
-            o1 = float(o1)
-            o2 = float(o2)
-            stake = float(stake)
-        except:
-            return JsonResponse({"error": "Non-numeric input"}, status=400)
-
-        if o1 <= 1 or o2 <= 1 or stake <= 0:
+        if not (odds_team1 > 1 and odds_team2 > 1 and total_stake > 0):
             return JsonResponse({"error": "Invalid input values."}, status=400)
 
-        imp1 = 1 / o1
-        imp2 = 1 / o2
-        total_prob = imp1 + imp2
+        # Calculate implied probabilities
+        implied_1 = 1 / odds_team1
+        implied_2 = 1 / odds_team2
+        total_implied = implied_1 + implied_2
 
-        if total_prob >= 1.0:
-            return JsonResponse({"error": "No arbitrage opportunity"}, status=400)
+        if total_implied >= 1:
+            return JsonResponse({"error": "No arbitrage possible with these odds."}, status=400)
 
-        st1 = round((imp2 / total_prob) * stake, 2)
-        st2 = round((imp1 / total_prob) * stake, 2)
+        # Stake allocation
+        stake_team1 = round((implied_2 / total_implied) * total_stake, 2)
+        stake_team2 = round((implied_1 / total_implied) * total_stake, 2)
 
-        payout1 = round(st1 * o1, 2)
-        payout2 = round(st2 * o2, 2)
-        profit = round(min(payout1, payout2) - stake, 2)
+        # Profit from either outcome
+        payout = round(stake_team1 * odds_team1, 2)
+        profit = round(payout - total_stake, 2)
 
         return JsonResponse({
-            "team1_stake": st1,
-            "team2_stake": st2,
-            "guaranteed_profit": profit,
-            "payout_team1": payout1,
-            "payout_team2": payout2,
-            "inputs": {
-                "odds_team1": o1,
-                "odds_team2": o2,
-                "stake": stake
-            }
+            "team1_stake": stake_team1,
+            "team2_stake": stake_team2,
+            "guaranteed_profit": profit
         })
 
     except Exception as e:
-        return JsonResponse({"error": "Unexpected error", "details": str(e)}, status=500)
+        return JsonResponse({"error": "Invalid request format", "details": str(e)}, status=400)
+
 
 
 #  FAKE TEST DATA # Remove: Later
