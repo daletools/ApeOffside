@@ -1,7 +1,8 @@
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
+from django.core.cache import cache
 import requests
-
+from datetime import datetime
 from odds.utils.view_helpers import parse_event_odds
 
 ODDS_BASE_URL = "https://api.the-odds-api.com"
@@ -53,7 +54,26 @@ def fetch_odds(request, sport):
 
 #GET /v4/sports/{sport}/events/{eventId}/odds?apiKey={apiKey}&regions={regions}&markets={markets}&dateFormat={dateFormat}&oddsFormat={oddsFormat}
 def fetch_event_odds(request, sport, event_id, markets):
-    url=url = f"{ODDS_BASE_URL}/v4/sports/{sport}/events/{event_id}/odds?apiKey={settings.API_KEY}&regions=us&markets={markets}"
+    cache_key = f"event_odds_{sport}_{event_id}_{markets}"
+    cached_data = cache.get(cache_key)
+
+    if cached_data is not None:
+        response_data = {
+            'data': cached_data,
+            'metadata': {
+                'cached': True,
+                'timestamp': datetime.now().isoformat(),
+                'message': 'Served from cache (60 second TTL)'
+            }
+        }
+        return JsonResponse(response_data, safe=False)
+
+    url = (f"{ODDS_BASE_URL}"
+           f"/v4/sports/{sport}"
+           f"/events/{event_id}"
+           f"/odds?apiKey={settings.API_KEY}"
+           f"&regions=us&markets={markets}")
+
     try:
         response = requests.get(url)
         if response.status_code != 200:
@@ -65,7 +85,20 @@ def fetch_event_odds(request, sport, event_id, markets):
         full_data = response.json()
         parsed_data = parse_event_odds(full_data)
 
-        return JsonResponse(parsed_data, safe=False)
+        cache.set(cache_key, parsed_data, 60)
+        response_data = {
+            'data': parsed_data,
+            'metadata': {
+                'cached': False,
+                'timestamp': datetime.now().isoformat(),
+                'message': 'Freshly fetched data'
+            }
+        }
 
-    except Exception:
-        return JsonResponse({'error': 'An unexpected error occurred'}, status=500)
+        return JsonResponse(response_data, safe=False)
+
+    except Exception as e:
+        return JsonResponse({
+            'error': 'An unexpected error occurred',
+            'details': str(e)
+        }, status=500)
