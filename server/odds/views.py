@@ -2,7 +2,7 @@ from django.http import JsonResponse, HttpResponse
 from django.conf import settings
 from django.core.cache import cache
 import requests
-
+from datetime import datetime
 from odds.utils.view_helpers import parse_event_odds
 
 ODDS_BASE_URL = "https://api.the-odds-api.com"
@@ -56,8 +56,17 @@ def fetch_odds(request, sport):
 def fetch_event_odds(request, sport, event_id, markets):
     cache_key = f"event_odds_{sport}_{event_id}_{markets}"
     cached_data = cache.get(cache_key)
+
     if cached_data is not None:
-        return JsonResponse(cached_data, safe=False)
+        response_data = {
+            'data': cached_data,
+            'metadata': {
+                'cached': True,
+                'timestamp': datetime.now().isoformat(),
+                'message': 'Served from cache (60 second TTL)'
+            }
+        }
+        return JsonResponse(response_data, safe=False)
 
     url = (f"{ODDS_BASE_URL}"
            f"/v4/sports/{sport}"
@@ -77,8 +86,19 @@ def fetch_event_odds(request, sport, event_id, markets):
         parsed_data = parse_event_odds(full_data)
 
         cache.set(cache_key, parsed_data, 60)
+        response_data = {
+            'data': parsed_data,
+            'metadata': {
+                'cached': False,
+                'timestamp': datetime.now().isoformat(),
+                'message': 'Freshly fetched data'
+            }
+        }
 
-        return JsonResponse(parsed_data, safe=False)
+        return JsonResponse(response_data, safe=False)
 
     except Exception as e:
-        return JsonResponse({'error': 'An unexpected error occurred'}, status=500)
+        return JsonResponse({
+            'error': 'An unexpected error occurred',
+            'details': str(e)
+        }, status=500)
