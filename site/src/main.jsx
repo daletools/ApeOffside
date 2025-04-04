@@ -7,12 +7,13 @@ import Navbar from './components/layout/Navbar/Navbar.jsx'
 import ApiTestBlock from "./components/features/ApiTestBlock.jsx";
 import OddsViewer from './components/features/OddsViewer';
 import Gemini from "./components/features/Gemini.jsx";
+import LiveOddsGraph from "./components/features/Graph.jsx";
 
 createRoot(document.getElementById('root')).render(
     <StrictMode>
-        <Graph />
         {/*<Navbar/>*/}
         <div>
+            <LiveOddsGraph />
             This is a test component
             {/* <ApiTestBlock /> */}
             <OddsViewer/>
