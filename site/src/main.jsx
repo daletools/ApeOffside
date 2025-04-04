@@ -5,7 +5,7 @@ import './index.css'
 import App from './App.jsx'
 import Navbar from './components/layout/Navbar/Navbar.jsx'
 import ApiTestBlock from "./components/features/ApiTestBlock.jsx";
-import OddsViewer from './components/features/OddsViewer';
+import OddsViewer from './components/features/OddsViewer.jsx';
 import Gemini from "./components/features/Gemini.jsx";
 
 createRoot(document.getElementById('root')).render(

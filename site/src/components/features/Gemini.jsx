@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
-import { fetchChatResponse } from "../../services/api.jsx";
+import React, {useState, useRef, useEffect} from "react";
+import {fetchChatResponse, fetchConversationHistory} from "../../services/api.jsx"; // Ensure API services exist
 import "../../Gemini.css"; // Import CSS Style
 
 const Gemini = () => {
@@ -8,14 +8,21 @@ const Gemini = () => {
     const [messages, setMessages] = useState([]); // Store all messages
     const [loading, setLoading] = useState(false);
 
-    // Dont refresh the page
-    const handleRefresh = async (e) => {
-        e.preventDefault();
-    };
-
     const chatResponseRef = useRef(null); // Reference for chat response container
 
-    const toggleChat = () => setIsOpen(!isOpen);
+    const toggleChat = async () => {
+        setIsOpen(!isOpen);
+
+        // Fetch conversation history if chat is being opened
+        if (!isOpen) {
+            try {
+                const history = await fetchConversationHistory(); // Fetch existing conversation
+                setMessages(history.response); // Populate chat window with history
+            } catch (error) {
+                console.error("Error fetching conversation history:", error);
+            }
+        }
+    };
 
     const handleChange = (e) => {
         setMessage(e.target.value);
@@ -27,18 +34,18 @@ const Gemini = () => {
             return; // Prevent sending empty messages
         }
 
-        const userMessage = { sender: "user", text: message }; // User message object
+        const userMessage = {sender: "user", text: message}; // User message object
         setMessages((prevMessages) => [...prevMessages, userMessage]); // Add user message to chat history
         setMessage("");
         setLoading(true);
 
         try {
             const data = await fetchChatResponse(message);
-            const botMessage = { sender: "bot", text: data.response }; // Bot response
+            const botMessage = {sender: "bot", text: data.response}; // Bot response
             setMessages((prevMessages) => [...prevMessages, botMessage]); // Add bot message to chat history
         } catch (error) {
             console.error("Error fetching chat response:", error);
-            const errorMessage = { sender: "bot", text: "Something went wrong. Please try again later." };
+            const errorMessage = {sender: "bot", text: "Something went wrong. Please try again later."};
             setMessages((prevMessages) => [...prevMessages, errorMessage]); // Add error message to chat history
         } finally {
             setLoading(false);
@@ -63,7 +70,7 @@ const Gemini = () => {
             {isOpen && (
                 <div className="chat-popup">
                     <div className="chat-header">
-                        <h2>💬 Rambling Gambling ChatBot</h2>
+                        <h2>💬 Pro Gambler</h2>
                         <button className="close-button" onClick={toggleChat}>
                             ✖
                         </button>
