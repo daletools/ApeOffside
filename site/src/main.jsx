@@ -10,7 +10,7 @@ import Gemini from "./components/features/Gemini.jsx";
 
 createRoot(document.getElementById('root')).render(
     <StrictMode>
-        <Graph />
+        {/*<Graph />*/}
         {/*<Navbar/>*/}
         <div>
             This is a test component
