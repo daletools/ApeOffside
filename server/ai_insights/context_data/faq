@@ -1,0 +1,23 @@
+Q: What is an arbitrage opportunity?
+A: Arbitrage in sports betting is when you place bets on all outcomes of an event using different sportsbooks to guarantee a profit regardless of the result.
+
+Q: How does the arbitrage calculator work?
+A: The calculator takes odds for both teams and distributes your stake proportionally to lock in a guaranteed profit.
+
+
+# Arbitrage Calculator (in this app)
+
+The arbitrage calculator takes two decimal odds (e.g. 2.1 and 1.9) and a total stake amount from the user. It calculates the implied probability of each outcome, determines if arbitrage is possible, and then divides the stake proportionally to guarantee a profit regardless of the event's result.
+
+It returns:
+- The stake to place on each team
+- The payout for both outcomes
+- The guaranteed profit
+
+This is only available when total implied probability is under 1.
+
+Example:
+If the odds are 2.10 and 1.95, and the user stakes $100, the calculator will allocate ~$48.78 and ~$51.22 to each team, yielding a payout of ~$102 and a guaranteed profit of $2.
+
+If odds don’t qualify for arbitrage (implied probability >= 1), the tool explains that arbitrage is not possible.
+
