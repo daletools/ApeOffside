@@ -12,7 +12,6 @@ def fetch_odds(request, sport):
     params = {
         "apiKey": settings.API_KEY,
         "regions": "us",
-        "markets": "player_points",
         "bookmakers": "draftkings",
         "oddsFormat": "decimal"
     }

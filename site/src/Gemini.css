@@ -9,46 +9,70 @@
     border: 1px solid #333;
     border-radius: 10px;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-    padding: 10px; /* Reduced padding for more usable space */
+    padding: 20px; /* Padding inside the popup for spacing */
     color: white;
     box-sizing: border-box;
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* To stack the items vertically */
+    gap: 15px; /* Adds spacing between all child elements */
+}
+
+/* Chat Header */
+.chat-header {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px; /* Adds space below the header */
+}
+
+/* Chat Response Area (Scrollable) */
+.chat-response {
+    flex-grow: 1; /* Allows response area to expand dynamically */
+    overflow-y: auto;
+    max-height: calc(100% - 90px); /* Makes space for the header and input */
+    margin-top: 10px; /* Space above the response area */
+    background-color: #292933;
+    padding: 10px;
+    border-radius: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: #555 #1e1e2f;
 }
 
 /* Chat Form */
 .chat-form {
     display: flex;
-    gap: 6px; /* Adjusted gap for tighter layout */
+    gap: 10px; /* Adds space between the input field and the send button */
     flex-shrink: 0;
-    margin-top: 10px; /* Added space above the form */
-    align-items: center; /* Aligns input field and button */
+    align-items: center;
+    margin-top: 10px; /* Adds space above the whole form */
 }
 
 /* Input Field */
 .chat-input {
-    flex: 1; /* Ensures input takes majority of space */
-    padding: 8px; /* Slightly reduced padding for compact design */
+    flex: 1; /* Takes up the remaining space */
+    padding: 10px;
     border: none;
-    border-radius: 6px; /* Reduced input field corner roundness */
+    border-radius: 20px; /* Rounded corners for the input */
     background-color: #2c2c3d;
     color: white;
     outline: none;
     font-size: 14px;
-    height: 36px; /* Consistent height for input box */
+    height: 40px;
 }
 
 /* Send Button */
 .send-button {
-    padding: 8px 16px; /* Reduced padding for compact design */
+    padding: 10px 16px;
     border: none;
-    border-radius: 6px;
+    border-radius: 10px;
     background-color: #4caf50;
     color: white;
     cursor: pointer;
     font-size: 14px;
     transition: background-color 0.3s ease;
-    height: 36px; /* Matches input field height */
+    height: 40px;
+    margin-left: 10px; /* Adds space between the button and the input */
 }
 
 /* Chat Response Area (Scrollable) */
@@ -152,4 +176,10 @@
 .chat-button:hover {
     transform: scale(1.1); /* Slightly enlarge on hover */
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Enhanced shadow on hover */
+}
+
+/* Unique style for the default bot message */
+.bot-message:first-child {
+    font-weight: bold;
+    color: #07e310; /* Green highlight */
 }
