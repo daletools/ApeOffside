@@ -29,10 +29,8 @@ export const fetchCurrentGames = async (sport) => {
     }
 };
 
-export const fetchGameOdds = async (sport, market) => {
+export const fetchGameOdds = async (sport, id, market) => {
     try {
-        const currentGames = await fetchCurrentGames(sport)
-        const id = currentGames[0].id;
         const response = await api.get(`odds/event/${sport}/${id}/${market}`)
         return response.data;
     } catch (error) {

@@ -21,7 +21,7 @@ const OddsViewer = () => {
 }, []);
 
 
-  console.log("RENDERING ODDS:", odds); // ✅ Check re-renders
+  //console.log("RENDERING ODDS:", odds); // ✅ Check re-renders
 
 return (
   <div>
