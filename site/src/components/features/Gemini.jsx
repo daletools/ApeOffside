@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useState, useRef, useEffect} from "react";
 import {fetchChatResponse} from "../../services/api.jsx";
 import "../../Gemini.css"; // Import CSS Style
 
@@ -7,6 +7,7 @@ const Gemini = () => {
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]); // Chat messages
     const [loading, setLoading] = useState(false);
+    const messagesEndRef = useRef(null); // Create a reference for the last message
 
     const toggleChat = () => {
         // Show default prompt when chat is opened
@@ -44,6 +45,13 @@ const Gemini = () => {
         }
     };
 
+    useEffect(() => {
+        // Scroll to the last message whenever 'messages' changes
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({behavior: "smooth"});
+        }
+    }, [messages]);
+
     return (
         <div className="chat-container">
             <div className="chat-button" onClick={toggleChat}>
@@ -66,6 +74,8 @@ const Gemini = () => {
                             </p>
                         ))}
                         {loading && <p>Loading...</p>}
+                        {/* Dummy div for scrolling */}
+                        <div ref={messagesEndRef}/>
                     </div>
                     <form onSubmit={handleSubmit}>
                         <input
