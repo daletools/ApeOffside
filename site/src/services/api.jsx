@@ -29,6 +29,15 @@ export const fetchCurrentGames = async (sport) => {
     }
 };
 
+export const fetchGameOdds = async (sport, id, market) => {
+    try {
+        const response = await api.get(`odds/event/${sport}/${id}/${market}`)
+        return response.data;
+    } catch (error) {
+        console.log(`Error fetching game: ${error}`);
+    }
+}
+
 export const fetchOddsAPI = async (sport) => {
     const response = await api.get(`/odds/${sport}`);
     return response.data;

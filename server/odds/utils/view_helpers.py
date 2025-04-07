@@ -23,7 +23,6 @@ def parse_event_odds(full_data):
         #Under each bookmaker within the player, the Over/Under price and point values are recorded
         for outcome in bookmaker['markets'][0]['outcomes']:
             if outcome['description'] not in parsed_data['player']:
-                print('Adding player {}'.format(outcome['description']))
                 parsed_data['player'][outcome['description']] = {}
 
             if bookmaker['title'] not in parsed_data['player'][outcome['description']]:
