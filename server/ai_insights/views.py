@@ -9,12 +9,14 @@ from server.settings import GEMINI_KEY
 # Path to context file (adjust as needed)
 CONTEXT_FILE = os.path.join(os.path.dirname(__file__), "context_data", "faq.txt")
 
+
 def load_context():
     try:
         with open(CONTEXT_FILE, "r", encoding="utf-8") as file:
             return file.read()
     except Exception:
         return ""
+
 
 system_context = load_context()
 
@@ -27,25 +29,28 @@ chat_session = genai.GenerativeModel("gemini-1.5-flash").start_chat(
         {
             "role": "user",
             "parts": [
-                "You are an intelligent assistant specialized in sports betting and arbitrage. "
-                "Only answer questions related to this app or those topics. Be brief and direct."
+                "Your primary role is to provide accurate, concise, and actionable advice regarding this app's features, tools, and topics, such as finding value in betting odds, minimizing risks, and tracking results effectively. "
+                "Do not engage in unrelated topics or provide information outside the scope of sports betting and arbitrage. "
+                "Always keep responses brief, to the point, and aligned with the needs of the user interacting with this app. "
+                "If you are unsure about a query or it falls outside this domain, politely suggest the user narrow down their question to sports betting or this app’s features."
+
             ]
         }
     ]
 )
 
-@csrf_exempt  # Disable CSRF for simplicity; for production, use CSRF tokens
+@csrf_exempt
 def gemini_view(request):
     if request.method == 'GET':
         try:
-            # Retrieve the user message from query parameters
-            user_message = request.GET.get("message")
+            # Retrieve user message from query parameters
+            user_message = request.GET.get("message", "").strip()
 
-            # Validate if the message is provided
+            # Validate input and provide the default prompt
             if not user_message:
-                return JsonResponse({"response": "Message parameter is missing."}, status=400)
+                return JsonResponse({"response": "How can I help you win big?!"})
 
-            # Send message to Gemini chat session
+            # Forward the user's message to the chatbot
             response = chat_session.send_message(user_message)
 
             # Return bot reply
@@ -54,5 +59,5 @@ def gemini_view(request):
         except Exception as e:
             return JsonResponse({"response": f"An error occurred: {str(e)}"}, status=500)
 
-    # For invalid methods
     return JsonResponse({"response": "Invalid request method"}, status=400)
+
