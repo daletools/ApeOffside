@@ -83,3 +83,56 @@ def find_arbitrage(games):
                     })
 
     return opportunities
+
+#VALUE BET DETECTOR
+# Detects value bets based on deviation from consensus odds.
+#We'll return opportunities with EV% over a given threshold.
+def detect_value_bets(games, threshold=5.0):
+    value_bets = []
+
+    for game in games:
+        market_odds = {} # Dictionary to collect odds for each team
+
+        for bookmaker in game.get("bookmakers", []):
+            for market in bookmaker.get("markets", []):
+                if market.get("key") == "h2h":
+                    for outcome in market.get("outcomes", []):
+                        team = outcome["name"]
+                        odds = outcome["price"]
+
+                        # Group odds by team
+                        market_odds.setdefault(team, []).append({
+                            "bookmaker": bookmaker["title"],
+                            "odds": odds
+                        })
+        # Iterate over teams and evaluate value
+        for team, entries in market_odds.items():
+            if len(entries) < 2:
+                continue  # Not enough data to compare
+
+            # Calculate consensus implied probability
+            implied_probs = [1 / e["odds"] for e in entries]
+            consensus_prob = sum(implied_probs) / len(implied_probs)
+            consensus_odds = 1 / consensus_prob
+
+            for entry in entries:
+                bookmaker_odds = entry["odds"]
+                # Calculate value percentage (potential misprice)
+                value_percentage = ((bookmaker_odds - consensus_odds) / consensus_odds) * 100
+
+                # Only include bets above the value threshold
+                if value_percentage >= threshold:
+                    value_bets.append({
+                        "team": team,
+                        "bookmaker": entry["bookmaker"],
+                        "odds": bookmaker_odds,
+                        "consensus_odds": round(consensus_odds, 2),
+                        "value_percentage": round(value_percentage, 2),
+                        "game": {
+                            "home_team": game["home_team"],
+                            "away_team": game["away_team"],
+                            "commence_time": game["commence_time"]
+                        }
+                    })
+
+    return value_bets
