@@ -1,41 +1,40 @@
-import {useState} from 'react'
-import reactLogo from './assets/images/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
-import OddsViewer from './components/features/OddsViewer';
-import ChatBot from 'react-chatbotify';
+// App.js
+import React, { useState } from 'react';
+import ArbitrageContainer from "./components/layout/ArbitrageContainer/ArbitrageContainer.jsx";
+import PropBetContainer from "./components/layout/PropBetContainer/PropBetContainer.jsx";
+import Navbar from "./components/layout/Navbar/Navbar.jsx";
+import WelcomeScreen from "./components/layout/WelcomeScreen/WelcomeScreen.jsx";
 
 function App() {
-    const [count, setCount] = useState(0)
+    const [activeComponent, setActiveComponent] = useState('welcome');
+
+    const renderComponent = () => {
+        switch (activeComponent) {
+            case 'component1':
+                return <ArbitrageContainer />;
+            case 'component2':
+                return <PropBetContainer />;
+            default:
+                return <WelcomeScreen />;
+        }
+    };
 
     return (
-        <>
-            <ChatBot/>
-            <div className="App">
-                <h1>NBA Betting Odds</h1>
-            </div>
-            <div>
-                <a href="https://vite.dev" target="_blank">
-                    <img src={viteLogo} className="logo" alt="Vite logo"/>
-                </a>
-                <a href="https://react.dev" target="_blank">
-                    <img src={reactLogo} className="logo react" alt="React logo"/>
-                </a>
-            </div>
-            <h1>Vite + React</h1>
-            <div className="card">
-                <button onClick={() => setCount((count) => count + 1)}>
-                    count is {count}
-                </button>
-                <p>
-                    Edit <code>src/App.jsx</code> and save to test HMR
-                </p>
-            </div>
-            <p className="read-the-docs">
-                Click on the Vite and React logos to learn more
-            </p>
-        </>
-    )
+        <div className="app-container" style={{ display: 'flex', height: '100vh' }}>
+            <Navbar
+                activeComponent={activeComponent}
+                setActiveComponent={setActiveComponent}
+            />
+            <main className="content-panel" style={{
+                flex: 1,
+                padding: '20px',
+                overflow: 'auto'
+            }}>
+                {renderComponent()}
+            </main>
+        </div>
+    );
 }
 
-export default App
+export default App;
