@@ -1,8 +1,48 @@
-# arbitrage/tests.py
+
 
 from django.test import TestCase, Client
 from django.urls import reverse
 import json
+from odds.arbitrage.utils import detect_value_bets
+class ValueBetDetectionTest(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+#ValueBetDetectionTest
+    def test_detect_value_bets_logic(self):
+        fake_games = [
+            {
+                "home_team": "Lakers",
+                "away_team": "Warriors",
+                "commence_time": "2025-04-01T00:00:00Z",
+                "bookmakers": [
+                    {
+                        "title": "DraftKings",
+                        "markets": [{
+                            "key": "h2h",
+                            "outcomes": [
+                                {"name": "Lakers", "price": 2.0},
+                                {"name": "Warriors", "price": 1.9}
+                            ]
+                        }]
+                    },
+                    {
+                        "title": "FanDuel",
+                        "markets": [{
+                            "key": "h2h",
+                            "outcomes": [
+                                {"name": "Lakers", "price": 2.4},  # ← this should trigger value bet
+                                {"name": "Warriors", "price": 1.8}
+                            ]
+                        }]
+                    }
+                ]
+            }
+        ]
+
+        result = detect_value_bets(fake_games, threshold=5.0)
+        self.assertGreater(len(result), 0)
+        self.assertEqual(result[0]["team"], "Lakers")
 
 class ArbitrageViewTest(TestCase):
     def setUp(self):

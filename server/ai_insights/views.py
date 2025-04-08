@@ -5,6 +5,8 @@ from django.views.decorators.csrf import csrf_exempt
 import google.generativeai as genai
 from django.conf import settings
 from server.settings import GEMINI_KEY
+from odds.value_helper import get_live_value_bets
+
 
 # Path to context file (adjust as needed)
 CONTEXT_FILE = os.path.join(os.path.dirname(__file__), "context_data", "faq.txt")
