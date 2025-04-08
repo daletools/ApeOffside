@@ -9,11 +9,17 @@ import OddsViewer from './components/features/OddsViewer';
 import Gemini from "./components/features/Gemini.jsx";
 import LiveOddsGraph from "./components/features/Graph.jsx";
 import PlayerBlockContainer from "./components/layout/PlayerBlockContainer.jsx";
+import InsightsSelector from "./components/features/InsightsSelector.jsx";
+import { BrowserRouter } from 'react-router-dom';
+
 
 createRoot(document.getElementById('root')).render(
     <StrictMode>
+        {/*<BrowserRouter>*/}
         {/*<Navbar/>*/}
+            <div className="main-content">
         <div>
+            <InsightsSelector />
             <PlayerBlockContainer />
             This is a test component
             {/* <ApiTestBlock /> */}
@@ -22,6 +28,8 @@ createRoot(document.getElementById('root')).render(
         <div>
             <Gemini/>
         </div>
+                </div>
+            {/*</BrowserRouter>*/}
     </StrictMode>,
 )
 

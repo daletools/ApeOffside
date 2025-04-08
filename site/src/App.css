@@ -40,3 +40,8 @@
 .read-the-docs {
   color: #888;
 }
+/*For testing navbar*/
+.main-content {
+  margin-left: 220px;
+  padding: 1rem;
+}
