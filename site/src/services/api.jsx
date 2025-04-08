@@ -44,11 +44,23 @@ export const fetchOddsAPI = async (sport) => {
 };
 
 export const fetchChatResponse = async (message) => {
-    const response = await axios.get("/insights/chatbot", {params: {message}});
-    return response.data;
+    // Using GET request to fetch chat response
+    try {
+        const response = await api.get(`/insights/chatbot/?message=${message}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching chat response:", error);
+    }
+
+
 };
 
-export const fetchConversationHistory = async () => {
-    const response = await axios.get("/insights/conversation_history/");
-    return response.data;
-};
+export async function fetchArbitrageOpportunities() {
+  const res = await fetch("http://localhost:8000/arbitrage/opportunities/");
+  return await res.json();
+}
+
+export async function fetchValueBets() {
+  const res = await fetch("http://localhost:8000/arbitrage/valuebets/");
+  return await res.json();
+}
