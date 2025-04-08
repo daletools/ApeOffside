@@ -3,9 +3,9 @@ from . import views
 from .views import (
     arbitrage_opportunities,
     calculate_arbitrage_stakes,
-    value_bet_opportunities,
     test_arbitrage_with_fake_data, # Remove: Later Test Data
 )
+from .value_detection import value_bet_opportunities
 
 app_name = "arbitrage"
 
