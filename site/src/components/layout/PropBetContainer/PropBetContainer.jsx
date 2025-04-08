@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import PlayerBlock from "../features/PlayerBlock.jsx";
-import { fetchCurrentGames, fetchGameOdds } from "../../services/api.jsx";
+import PlayerBlock from "../../features/PlayerBlock.jsx";
+import { fetchCurrentGames, fetchGameOdds } from "../../../services/api.jsx";
 
-function PlayerBlockContainer() {
+function PropBetContainer() {
     const [games, setGames] = useState([]);
     const [selectedGame, setSelectedGame] = useState(null);
     const [data, setData] = useState(null);
@@ -97,4 +97,4 @@ function PlayerBlockContainer() {
 }
 
 
-export default PlayerBlockContainer;
+export default PropBetContainer;
