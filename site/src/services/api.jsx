@@ -54,3 +54,13 @@ export const fetchChatResponse = async (message) => {
 
 
 };
+
+export async function fetchArbitrageOpportunities() {
+  const res = await fetch("http://localhost:8000/arbitrage/opportunities/");
+  return await res.json();
+}
+
+export async function fetchValueBets() {
+  const res = await fetch("http://localhost:8000/arbitrage/valuebets/");
+  return await res.json();
+}

@@ -1,8 +1,6 @@
-// components/Navbar.js
 import React from 'react';
 
 function Navbar({ activeComponent, setActiveComponent }) {
-    // If using React Router, you can remove the activeComponent and setActiveComponent props
     return (
         <nav style={{
             position: 'fixed',
@@ -65,6 +63,19 @@ function Navbar({ activeComponent, setActiveComponent }) {
             </ul>
         </nav>
     );
+
+//function Navbar() {
+//  return (
+//    <nav className="navbar">
+//      <div className="logo">ApeOffside 🦍</div>
+//      <ul className="nav-links">
+//        <li><Link to="/">Home</Link></li>
+//        <li><Link to="/explore">Explore</Link></li>
+//        <li><Link to="/insights">Insights</Link></li>
+//        <li><Link to="/about">About</Link></li>
+//      </ul>
+//    </nav>
+//  );
 }
 
 export default Navbar;
