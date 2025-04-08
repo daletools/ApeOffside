@@ -10,7 +10,7 @@ from odds.arbitrage.utils import find_arbitrage
 ODDS_BASE_URL = "https://api.the-odds-api.com"
 
 
-# ✅ REAL ODDS -> Finds arbitrage opportunities from the Odds API
+#REAL ODDS -> Finds arbitrage opportunities from the Odds API
 def arbitrage_opportunities(request):
     sport = "basketball_nba"
 
