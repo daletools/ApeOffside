@@ -1,12 +1,15 @@
 import os
 import json
+from urllib import response
+
+import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import google.generativeai as genai
 from django.conf import settings
 from server.settings import GEMINI_KEY
 from odds.value_helper import get_live_value_bets
-
+from odds.views import ODDS_BASE_URL, fetch_historical_odds
 
 # Path to context file (adjust as needed)
 CONTEXT_FILE = os.path.join(os.path.dirname(__file__), "context_data", "faq.txt")
@@ -41,25 +44,30 @@ chat_session = genai.GenerativeModel("gemini-1.5-flash").start_chat(
     ]
 )
 
+
 @csrf_exempt
 def gemini_view(request):
-    if request.method == 'GET':
+    if request.method == "GET":
         try:
-            # Retrieve user message from query parameters
             user_message = request.GET.get("message", "").strip()
 
-            # Validate input and provide the default prompt
             if not user_message:
                 return JsonResponse({"response": "How can I help you win big?!"})
 
-            # Forward the user's message to the chatbot
-            response = chat_session.send_message(user_message)
+            # Detect historical odds query from user messages like "historical football 2023-10-01"
+            if "historical" in user_message.lower():
+                parts = user_message.split(" ")
+                sport = parts[1]
+                date = parts[2]
 
-            # Return bot reply
+                # Call the fetch_historical_odds view directly
+                return fetch_historical_odds(request, sport, date)
+
+            # Forward normal chat messages to chatbot
+            response = chat_session.send_message(user_message)
             return JsonResponse({"response": response.text})
 
         except Exception as e:
             return JsonResponse({"response": f"An error occurred: {str(e)}"}, status=500)
 
     return JsonResponse({"response": "Invalid request method"}, status=400)
-
