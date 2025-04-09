@@ -69,38 +69,38 @@ function App() {
     );*/
 
     return (
-    <div style={{
-        display: 'flex',
-        height: '100vh',
-        width: '100vw',
-        overflow: 'hidden'
-    }}>
-        <Navbar
-            activeComponent={activeComponent}
-            setActiveComponent={setActiveComponent}
-        />
-        <main style={{
-            flex: 1,
+        <div style={{
             display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px',
-            overflow: 'auto',
-            marginLeft: 'auto',
-            maxWidth: 'calc(100vw - var(--navbar-width, 250px))'
+            height: '100vh',
+            width: '100vw',
+            overflow: 'hidden'
         }}>
-            <div style={{
-                width: '100%',
-                maxWidth: '1200px',
-                height: '100%',
+            <Navbar
+                activeComponent={activeComponent}
+                setActiveComponent={setActiveComponent}
+            />
+            <main style={{
+                flex: 1,
                 display: 'flex',
-                flexDirection: 'column'
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '20px',
+                overflow: 'auto',
+                marginLeft: 'auto',
+                maxWidth: 'calc(100vw - var(--navbar-width, 250px))'
             }}>
-                {renderComponent()}
-            </div>
-        </main>
-    </div>
+                <div style={{
+                    width: '100%',
+                    maxWidth: '1200px',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column'
+                }}>
+                    {renderComponent()}
+                </div>
+            </main>
+        </div>
     );
 }
 

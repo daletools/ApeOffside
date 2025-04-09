@@ -251,7 +251,14 @@ const GameCard = ({ game, isSelected, onClick }) => (
             {game.home_team} vs {game.away_team}
         </p>
         <p style={{ color: '#666', fontSize: '0.9em', margin: 0 }}>
-            {new Date(game.commence_time).toLocaleString()}
+            {new Date(game.commence_time).toLocaleString(undefined, {
+                timeZoneName: 'short',
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+            })}
         </p>
     </div>
 );
