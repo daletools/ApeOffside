@@ -45,3 +45,18 @@
   margin-left: 220px;
   padding: 1rem;
 }
+
+.right-column {
+    width: 300px; /* Adjust width as needed */
+    background-color: #1e1e2f; /* Optional background color */
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}

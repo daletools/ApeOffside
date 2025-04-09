@@ -1,8 +1,10 @@
+import './App.css';
 import React, { useState } from 'react';
 import ArbitrageContainer from "./components/layout/ArbitrageContainer/ArbitrageContainer.jsx";
 import PropBetContainer from "./components/layout/PropBetContainer/PropBetContainer.jsx";
 import Navbar from "./components/layout/Navbar/Navbar.jsx";
 import WelcomeScreen from "./components/layout/WelcomeScreen/WelcomeScreen.jsx";
+import Chatbot from "./components/features/Gemini.jsx";
 
 function App() {
     const [activeComponent, setActiveComponent] = useState('welcome');
@@ -50,6 +52,9 @@ function App() {
                     {renderComponent()}
                 </div>
             </main>
+            <div className="right-column">
+                <Chatbot />
+            </div>
         </div>
     );
 }
