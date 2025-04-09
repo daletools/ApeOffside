@@ -12,16 +12,16 @@ function App() {
     const renderComponent = () => {
         switch (activeComponent) {
             case 'component1':
-                return <ArbitrageContainer />;
+                return <ArbitrageContainer/>;
             case 'component2':
-                return <PropBetContainer />;
+                return <PropBetContainer/>;
             default:
-                return <WelcomeScreen />;
+                return <WelcomeScreen/>;
         }
     };
 
-    return (
-        <div className="app-container" style={{ display: 'flex', height: '100vh' }}>
+    /*return (
+        <div className="app-container" style={{display: 'flex', height: '100vh'}}>
             <Navbar
                 activeComponent={activeComponent}
                 setActiveComponent={setActiveComponent}
@@ -34,6 +34,41 @@ function App() {
                 {renderComponent()}
             </main>
         </div>
+    );*/
+
+    return (
+    <div style={{
+        display: 'flex',
+        height: '100vh',
+        width: '100vw',
+        overflow: 'hidden'
+    }}>
+        <Navbar
+            activeComponent={activeComponent}
+            setActiveComponent={setActiveComponent}
+        />
+        <main style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+            overflow: 'auto',
+            marginLeft: 'auto',
+            maxWidth: 'calc(100vw - var(--navbar-width, 250px))'
+        }}>
+            <div style={{
+                width: '100%',
+                maxWidth: '1200px',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column'
+            }}>
+                {renderComponent()}
+            </div>
+        </main>
+    </div>
     );
 }
 
