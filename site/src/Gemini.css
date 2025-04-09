@@ -1,31 +1,31 @@
 /* Chat Popup Window */
 .chat-popup {
-    width: 100%;
-    max-height: 100vh;
-    background: linear-gradient(to bottom, #1e1e2f, #292933);
-    border: 1px solid #333;
-    border-radius: 0; /* Remove rounded corners */
-    box-shadow: none; /* Remove shadow */
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 350px;
+    max-height: 500px;
+    background: #1e1e2f;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     z-index: 1000;
-    height: calc(100% - 50px); /* Adjust height to leave space at the bottom */
-    position: relative; /* Ensure proper positioning */
-    margin-bottom: 50px; /* Add space from the bottom */
 }
 
 /* Chat Header */
 .chat-header {
-    background-color: #4caf50; /* Green header */
+    background-color: #4caf50;
     color: white;
-    padding: 15px;
+    padding: 10px 15px;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     font-size: 16px;
     font-weight: bold;
     border-bottom: 1px solid #333;
+    border-radius: 15px 15px 0 0;
 }
 
 /* Close Button */
@@ -39,22 +39,20 @@
 }
 
 .chat-header button:hover {
-    color: #ff5f5f; /* Red hover effect */
+    color: #ff5f5f;
 }
 
 /* Chat Messages */
 .chat-response {
     flex-grow: 1;
-    padding: 15px;
-    overflow-y: auto; /* Enable vertical scrolling */
-    background-color: #292933; /* Slightly lighter dark background */
+    padding: 10px;
+    overflow-y: auto;
+    background-color: #292933;
     display: flex;
     flex-direction: column;
     gap: 10px;
     scrollbar-width: thin;
     scrollbar-color: #555 #1e1e2f;
-    border-bottom: 1px solid #333;
-    max-height: calc(100vh - 150px); /* Constrain height to prevent scrolling the page */
 }
 
 /* Custom Scrollbar for Webkit */
@@ -74,14 +72,15 @@
 .chat-response::-webkit-scrollbar-thumb:hover {
     background-color: #888;
 }
+
 /* User Message */
 .user-message {
     align-self: flex-end;
-    background-color: #4caf50; /* Green bubble */
+    background-color: #4caf50;
     color: white;
-    padding: 10px 15px;
+    padding: 8px 12px;
     border-radius: 15px 15px 0 15px;
-    max-width: 70%;
+    max-width: 80%;
     word-wrap: break-word;
     font-size: 14px;
 }
@@ -89,11 +88,11 @@
 /* Bot Message */
 .bot-message {
     align-self: flex-start;
-    background-color: #333; /* Dark gray bubble */
+    background-color: #333;
     color: white;
-    padding: 10px 15px;
+    padding: 8px 12px;
     border-radius: 15px 15px 15px 0;
-    max-width: 70%;
+    max-width: 80%;
     word-wrap: break-word;
     font-size: 14px;
 }
@@ -104,6 +103,7 @@
     padding: 10px;
     background-color: #1e1e2f;
     border-top: 1px solid #333;
+    border-radius: 0 0 15px 15px;
 }
 
 /* Input Field */
@@ -136,31 +136,28 @@
 .send-button:hover {
     background-color: #45a049;
 }
-.send-button:hover {
-    background-color: #45a049; /* Slightly lighter green on hover */
+
+/* Chat Bubble Button */
+.chat-bubble {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle, #673ab7 20%, #4dc50c 70%, #07e310 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+    font-size: 28px;
+    transition: all 0.3s ease;
+    border: none;
 }
 
-/*!* Chat Bubble Button *!*/
-/*.chat-bubble {*/
-/*    position: fixed;*/
-/*    bottom: 20px;*/
-/*    right: 20px;*/
-/*    width: 60px;*/
-/*    height: 60px;*/
-/*    background: radial-gradient(circle, #673ab7 20%, #4dc50c 70%, #07e310 100%);*/
-/*    color: white;*/
-/*    border-radius: 50%;*/
-/*    display: flex;*/
-/*    align-items: center;*/
-/*    justify-content: center;*/
-/*    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);*/
-/*    cursor: pointer;*/
-/*    font-size: 28px;*/
-/*    transition: all 0.3s ease;*/
-/*    border: none;*/
-/*}*/
-
-/*.chat-bubble:hover {*/
-/*    transform: scale(1.1);*/
-/*    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);*/
-/*}*/
+.chat-bubble:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
+}

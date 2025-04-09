@@ -1,5 +1,5 @@
 import './App.css';
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import ArbitrageContainer from "./components/layout/ArbitrageContainer/ArbitrageContainer.jsx";
 import PropBetContainer from "./components/layout/PropBetContainer/PropBetContainer.jsx";
 import Navbar from "./components/layout/Navbar/Navbar.jsx";
@@ -12,11 +12,11 @@ function App() {
     const renderComponent = () => {
         switch (activeComponent) {
             case 'component1':
-                return <ArbitrageContainer />;
+                return <ArbitrageContainer/>;
             case 'component2':
-                return <PropBetContainer />;
+                return <PropBetContainer/>;
             default:
-                return <WelcomeScreen />;
+                return <WelcomeScreen/>;
         }
     };
 
@@ -52,9 +52,7 @@ function App() {
                     {renderComponent()}
                 </div>
             </main>
-            <div className="right-column">
-                <Chatbot />
-            </div>
+            <Chatbot/>
         </div>
     );
 }
