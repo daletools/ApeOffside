@@ -94,10 +94,12 @@ const Gemini = ({data}) => {
                     </div>
                     <div className="chat-response">
                         {messages.map((msg, idx) => (
-                            <p key={idx} className={msg.sender === "user" ? "user-message" : "bot-message"}>
+                            <div key={idx} className={msg.sender === "user" ? "user-message" : "bot-message"}>
                                 <strong>{msg.sender === "user" ? "You: " : "Bot: "}</strong>
-                                {msg.text}
-                            </p>
+                                {msg.sender === "bot" && msg.text.startsWith("<table")
+                                    ? <div dangerouslySetInnerHTML={{__html: msg.text}}/>
+                                    : msg.text}
+                            </div>
                         ))}
                         <div ref={messagesEndRef}></div>
                     </div>
