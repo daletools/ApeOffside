@@ -13,8 +13,8 @@ function App() {
         switch (activeComponent) {
 
             case 'arbitrage':
-                return <ArbitrageContainer />;
-                
+                return <ArbitrageContainer/>;
+
             case 'component1':
                 return <ArbitrageContainer/>;
 
@@ -98,6 +98,7 @@ function App() {
                     {renderComponent()}
                 </div>
             </main>
+            <Chatbot/>
         </div>
     );
 }
