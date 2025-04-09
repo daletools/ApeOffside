@@ -1,5 +1,3 @@
-import './App.css'
-// App.js
 import React, { useState } from 'react';
 import ArbitrageContainer from "./components/layout/ArbitrageContainer/ArbitrageContainer.jsx";
 import PropBetContainer from "./components/layout/PropBetContainer/PropBetContainer.jsx";
@@ -21,17 +19,36 @@ function App() {
     };
 
     return (
-        <div className="app-container" style={{ display: 'flex', height: '100vh' }}>
+        <div style={{
+            display: 'flex',
+            height: '100vh',
+            width: '100vw',
+            overflow: 'hidden'
+        }}>
             <Navbar
                 activeComponent={activeComponent}
                 setActiveComponent={setActiveComponent}
             />
-            <main className="content-panel" style={{
+            <main style={{
                 flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
                 padding: '20px',
-                overflow: 'auto'
+                overflow: 'auto',
+                marginLeft: 'auto',
+                maxWidth: 'calc(100vw - var(--navbar-width, 250px))'
             }}>
-                {renderComponent()}
+                <div style={{
+                    width: '100%',
+                    maxWidth: '1200px',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column'
+                }}>
+                    {renderComponent()}
+                </div>
             </main>
         </div>
     );
