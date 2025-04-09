@@ -63,6 +63,7 @@ const PlayerBlock = ({ playerName, playerData, onRemove }) => {
             historicalData,
             trends
         };
+        onGetInsights(insightsData);
         console.log("Data ready for AI chatbot:", insightsData);
         // Here you would typically connect to your AI chatbot service
     };
