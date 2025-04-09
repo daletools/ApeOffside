@@ -1,10 +1,9 @@
-
 def calculate_arbitrage(odds_team1, odds_team2):
     """
     Given decimal odds for two outcomes, calculates if arbitrage exists.
     Returns:
         (is_arbitrage: bool, profit_percent: float)
-    """ 
+    """
     try:
         # Convert odds to implied probabilities
         implied_1 = 1 / odds_team1
@@ -21,8 +20,9 @@ def calculate_arbitrage(odds_team1, odds_team2):
         return False, 0
 
 
-def find_arbitrage(games, market_key="player_points"):
+def find_arbitrage(games, market_key="player_points", include_same_book=False):
     opportunities = []
+    near_arbs = []
 
     for game in games:
         event = f"{game['home_team']} vs {game['away_team']}"
@@ -52,51 +52,52 @@ def find_arbitrage(games, market_key="player_points"):
                     })
 
         for (player, point), sides in player_markets.items():
-            #print(f"\n[CHECK] Player: {player} | Line: {point}")
-            #print(f"  Over: {[o['bookmaker'] + '@' + str(o['price']) for o in sides['Over']]}")
-            #print(f"  Under: {[u['bookmaker'] + '@' + str(u['price']) for u in sides['Under']]}")
+            print(f"\n[CHECK] Player: {player} | Line: {point}")
+            print(f"  Over: {[o['bookmaker'] + '@' + str(o['price']) for o in sides['Over']]}")
+            print(f"  Under: {[u['bookmaker'] + '@' + str(u['price']) for u in sides['Under']]}")
 
             for over in sides["Over"]:
                 for under in sides["Under"]:
                     if over["bookmaker"] == under["bookmaker"]:
                         continue
 
-                    is_arb, profit = calculate_arbitrage(over["price"], under["price"])
-                    if is_arb:
-                       # print(f"✅ ARB FOUND: {player} - {over['price']} vs {under['price']} ({profit}%)")
-                        opportunities.append({
-                            "type": market_key,
-                            "event": event,
-                            "commence_time": commence_time,
-                            "player": player,
-                            "line": point,
-                            "side_1": {
-                                "name": "Over",
-                                "bookmaker": over["bookmaker"],
-                                "price": over["price"]
-                            },
-                            "side_2": {
-                                "name": "Under",
-                                "bookmaker": under["bookmaker"],
-                                "price": under["price"]
-                            },
-                            "profit_percent": profit
-                        })
+                    implied_1 = 1 / over["price"]
+                    implied_2 = 1 / under["price"]
+                    total = implied_1 + implied_2
+                    profit = round((1 - total) * 100, 2)
 
-  #  print(f"[DEBUG] Found {len(opportunities)} arbitrage opportunities.")
-    return opportunities
+                    entry = {
+                        "type": market_key,
+                        "event": event,
+                        "commence_time": commence_time,
+                        "player": player,
+                        "line": point,
+                        "side_1": {**over, "name": "Over"},
+                        "side_2": {**under, "name": "Under"},
+                    }
+
+                    if total < 1:
+                        entry["profit_percent"] = profit
+                        opportunities.append(entry)
+                    else:
+                        entry["implied_total"] = round(total, 3)
+                        near_arbs.append(entry)
+
+                opportunities = sorted(opportunities, key=lambda x: x["profit_percent"], reverse=True)[:3]
+                near_arbs = sorted(near_arbs, key=lambda x: x["implied_total"])[:3]
+
+    print(f"[DEBUG] Found {len(opportunities)} arbitrage opportunities.")
+    return opportunities, near_arbs
 
 
-
-
-#VALUE BET DETECTOR
+# VALUE BET DETECTOR
 # Detects value bets based on deviation from consensus odds.
-#We'll return opportunities with EV% over a given threshold.
+# We'll return opportunities with EV% over a given threshold.
 def detect_value_bets(games, threshold=5.0):
     value_bets = []
 
     for game in games:
-        market_odds = {} # Dictionary to collect odds for each team
+        market_odds = {}  # Dictionary to collect odds for each team
 
         for bookmaker in game.get("bookmakers", []):
             for market in bookmaker.get("markets", []):
