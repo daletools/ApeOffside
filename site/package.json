@@ -16,6 +16,7 @@
     "react": "^19.0.0",
     "react-chatbotify": "^2.0.0-beta.32",
     "react-dom": "^19.0.0",
+    "react-icons": "^5.5.0",
     "react-vis": "^1.12.1",
     "recharts": "^2.15.2"
   },
