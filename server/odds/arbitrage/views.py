@@ -6,8 +6,18 @@ import requests
 import json
 
 from odds.arbitrage.utils import find_arbitrage
+from .player_props import player_prop_arbitrage
+
 
 ODDS_BASE_URL = "https://api.the-odds-api.com"
+
+def player_prop_arbitrage_opportunities(request):
+    opportunities, error = player_prop_arbitrage()
+
+    if error:
+        return JsonResponse({"error": error}, status=500)
+
+    return JsonResponse(opportunities, safe=False)
 
 
 #REAL ODDS -> Finds arbitrage opportunities from the Odds API

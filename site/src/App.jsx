@@ -11,7 +11,7 @@ function App() {
 
     const renderComponent = () => {
         switch (activeComponent) {
-            case 'component1':
+            case 'arbitrage':
                 return <ArbitrageContainer />;
             case 'component2':
                 return <PropBetContainer />;

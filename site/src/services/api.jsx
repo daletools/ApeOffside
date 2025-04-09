@@ -64,3 +64,7 @@ export async function fetchValueBets() {
   const res = await fetch("http://localhost:8000/arbitrage/valuebets/");
   return await res.json();
 }
+export async function fetchPlayerPropArbitrage(market = "player_points") {
+  const res = await fetch(`http://localhost:8000/arbitrage/player-props/?market=${market}`);
+  return await res.json();
+}
