@@ -13,9 +13,10 @@ function Navbar({ activeComponent, setActiveComponent }) {
             boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
             overflowY: 'auto' // in case content is taller than screen
         }}>
-            <h2>Navigation</h2>
-            <ul style={{ listStyle: 'none', padding: 0 }}>
-                <li style={{ margin: '10px 0' }}>
+            {/*<h2>Navigation</h2>*/}
+            <h2 style={{fontFamily: 'Copperplate, fantasy', letterSpacing: '2px'}}>NAVIGATION</h2>
+            <ul style={{listStyle: 'none', padding: 0}}>
+                <li style={{margin: '10px 0'}}>
                     <button
                         onClick={() => setActiveComponent('welcome')}
                         style={{
@@ -30,7 +31,7 @@ function Navbar({ activeComponent, setActiveComponent }) {
                         Welcome
                     </button>
                 </li>
-                <li style={{ margin: '10px 0' }}>
+                <li style={{margin: '10px 0'}}>
                     <button
                         onClick={() => setActiveComponent('component1')}
                         style={{
@@ -45,7 +46,7 @@ function Navbar({ activeComponent, setActiveComponent }) {
                         Component One
                     </button>
                 </li>
-                <li style={{ margin: '10px 0' }}>
+                <li style={{margin: '10px 0'}}>
                     <button
                         onClick={() => setActiveComponent('component2')}
                         style={{
