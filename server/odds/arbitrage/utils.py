@@ -2,9 +2,9 @@
 def calculate_arbitrage(odds_team1, odds_team2):
     """
     Given decimal odds for two outcomes, calculates if arbitrage exists.
-    Returns a tuple:
+    Returns:
         (is_arbitrage: bool, profit_percent: float)
-    """
+    """ 
     try:
         # Convert odds to implied probabilities
         implied_1 = 1 / odds_team1
@@ -21,63 +21,73 @@ def calculate_arbitrage(odds_team1, odds_team2):
         return False, 0
 
 
-def find_arbitrage(games, market_key="h2h"):
-    """
-    Dynamically detects arbitrage opportunities.
-    Works for both team-level and player prop markets.
-    """
+def find_arbitrage(games, market_key="player_points"):
     opportunities = []
 
     for game in games:
         event = f"{game['home_team']} vs {game['away_team']}"
         commence_time = game["commence_time"]
+        player_markets = {}
 
         for bookmaker in game.get("bookmakers", []):
+            title = bookmaker["title"]
             for market in bookmaker.get("markets", []):
                 if market["key"] != market_key:
                     continue
 
-                outcomes = market.get("outcomes", [])
-                if len(outcomes) < 2:
-                    continue
+                for outcome in market.get("outcomes", []):
+                    name = outcome.get("name")
+                    player = outcome.get("description")
+                    price = outcome.get("price")
+                    point = outcome.get("point")
 
-                # Detect over/under arbitrage (e.g., Player Props)
-                for i in range(len(outcomes)):
-                    for j in range(i + 1, len(outcomes)):
-                        side1 = outcomes[i]
-                        side2 = outcomes[j]
+                    if not all([name, player, price, point]):
+                        continue
 
-                        # Must be opposing sides of the same prop
-                        if side1.get("description") != side2.get("description"):
-                            continue
+                    key = (player, point)
+                    player_markets.setdefault(key, {"Over": [], "Under": []})
+                    player_markets[key][name].append({
+                        "bookmaker": title,
+                        "price": price
+                    })
 
-                        odds1 = side1.get("price")
-                        odds2 = side2.get("price")
-                        if not odds1 or not odds2:
-                            continue
+        for (player, point), sides in player_markets.items():
+            #print(f"\n[CHECK] Player: {player} | Line: {point}")
+            #print(f"  Over: {[o['bookmaker'] + '@' + str(o['price']) for o in sides['Over']]}")
+            #print(f"  Under: {[u['bookmaker'] + '@' + str(u['price']) for u in sides['Under']]}")
 
-                        is_arb, profit = calculate_arbitrage(odds1, odds2)
-                        if is_arb:
-                            opportunities.append({
-                                "type": market_key,
-                                "event": event,
-                                "commence_time": commence_time,
-                                "player": side1.get("description", "Unknown"),
-                                "line": side1.get("point"),
-                                "side_1": {
-                                    "name": side1["name"],
-                                    "bookmaker": bookmaker["title"],
-                                    "price": odds1
-                                },
-                                "side_2": {
-                                    "name": side2["name"],
-                                    "bookmaker": bookmaker["title"],
-                                    "price": odds2
-                                },
-                                "profit_percent": profit
-                            })
+            for over in sides["Over"]:
+                for under in sides["Under"]:
+                    if over["bookmaker"] == under["bookmaker"]:
+                        continue
 
+                    is_arb, profit = calculate_arbitrage(over["price"], under["price"])
+                    if is_arb:
+                       # print(f"✅ ARB FOUND: {player} - {over['price']} vs {under['price']} ({profit}%)")
+                        opportunities.append({
+                            "type": market_key,
+                            "event": event,
+                            "commence_time": commence_time,
+                            "player": player,
+                            "line": point,
+                            "side_1": {
+                                "name": "Over",
+                                "bookmaker": over["bookmaker"],
+                                "price": over["price"]
+                            },
+                            "side_2": {
+                                "name": "Under",
+                                "bookmaker": under["bookmaker"],
+                                "price": under["price"]
+                            },
+                            "profit_percent": profit
+                        })
+
+  #  print(f"[DEBUG] Found {len(opportunities)} arbitrage opportunities.")
     return opportunities
+
+
+
 
 #VALUE BET DETECTOR
 # Detects value bets based on deviation from consensus odds.

@@ -7,12 +7,35 @@ function ArbitrageContainer() {
     const [playerPropType, setPlayerPropType] = useState(null); // e.g., "player_points"
     const [opportunities, setOpportunities] = useState([]);
 
+    // Mock data for demonstration
+    const mockOpportunities = [
+        {
+            type: "player_points",
+            event: "Los Angeles Lakers vs Golden State Warriors",
+            player: "LeBron James",
+            line: 25.5,
+            side_1: {name: "Over", bookmaker: "FanDuel", price: 2.1},
+            side_2: {name: "Under", bookmaker: "DraftKings", price: 2.2},
+            profit_percent: 7.8,
+        },
+    ];
+
     // Fetch arbitrage data when player prop type changes
     useEffect(() => {
         if (category === "player_props" && playerPropType) {
+            setOpportunities([]); // ✅ clear old data before fetching new
             fetchPlayerPropArbitrage(playerPropType).then(setOpportunities);
         }
     }, [category, playerPropType]);
+    useEffect(() => {
+        setPlayerPropType(null);
+        setOpportunities([]);
+    }, [category]);
+
+
+    const handleMockLoad = () => {
+        setOpportunities(mockOpportunities);
+    };
 
     return (
         <div>
@@ -76,7 +99,11 @@ function ArbitrageContainer() {
                     <h4>Arbitrage Opportunities
                         for: {playerPropType.replace("player_", "").replace(/_/g, " ").toUpperCase()}</h4>
                     {opportunities.length === 0 ? (
-                        <p>No opportunities found.</p>
+                        <div>
+                            <p>No arbitrage opportunities available right now. Try checking back later — these change
+                                often!</p>
+                            <button onClick={handleMockLoad}>Show Example with Mock Data</button>
+                        </div>
                     ) : (
                         <ul>
                             {opportunities.map((opp, idx) => (
