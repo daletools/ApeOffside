@@ -33,9 +33,9 @@ function Navbar({ activeComponent, setActiveComponent }) {
                 </li>
                 <li style={{margin: '10px 0'}}>
                     <button
-                        onClick={() => setActiveComponent('component1')}
+                        onClick={() => setActiveComponent('arbitrage')}
                         style={{
-                            background: activeComponent === 'component1' ? '#ddd' : 'transparent',
+                            background: activeComponent === 'arbitrage' ? '#ddd' : 'transparent',
                             border: 'none',
                             cursor: 'pointer',
                             textAlign: 'left',
@@ -43,8 +43,8 @@ function Navbar({ activeComponent, setActiveComponent }) {
                             padding: '8px'
                         }}
                     >
-                        Component One
-                    </button>
+                        Arbitrage
+                </button>
                 </li>
                 <li style={{margin: '10px 0'}}>
                     <button
@@ -65,6 +65,10 @@ function Navbar({ activeComponent, setActiveComponent }) {
         </nav>
     );
 
+}
+
+export default Navbar;
+
 //function Navbar() {
 //  return (
 //    <nav className="navbar">
@@ -77,6 +81,3 @@ function Navbar({ activeComponent, setActiveComponent }) {
 //      </ul>
 //    </nav>
 //  );
-}
-
-export default Navbar;
