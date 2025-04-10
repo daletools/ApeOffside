@@ -13,6 +13,7 @@ from transformers import pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+
 # # Path to context file (adjust as needed)
 # CONTEXT_FILE = os.path.join(os.path.dirname(__file__), "context_data", "faq.txt")
 # summarizer = pipeline("summarization", model="facebook/bart-large-cnn", max_length=1)
@@ -119,11 +120,12 @@ chat_session = genai.GenerativeModel("gemini-1.5-flash").start_chat(
         {
             "role": "user",
             "parts": [
-                "Your primary role is to provide accurate, concise, and actionable advice regarding this app's features, tools, and topics, such as finding value in betting odds, minimizing risks, and tracking results effectively. "
+                "Your primary role is to provide accurate, concise, and actionable advice regarding this app's features, tools, "
+                "and topics, such as finding value in betting odds, minimizing risks, and tracking results effectively. "
                 "Do not engage in unrelated topics or provide information outside the scope of sports betting and arbitrage. "
                 "Always keep responses brief, to the point, and aligned with the needs of the user interacting with this app. "
-                "If you are unsure about a query or it falls outside this domain, politely suggest the user narrow down their question to sports betting or this app’s features."
-
+                "If you are unsure about a query or it falls outside this domain, politely suggest the user narrow down their "
+                "question to sports betting or this app’s features."
             ]
         }
     ]
