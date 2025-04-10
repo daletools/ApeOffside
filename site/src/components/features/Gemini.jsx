@@ -1,100 +1,121 @@
-import React, {useState, useRef, useEffect} from "react";
+import {useState, useEffect, useRef} from "react";
 import {fetchChatResponse} from "../../services/api.jsx";
-import "../../Gemini.css"; // Import CSS Style
+import "../../Gemini.css";
 
-const Gemini = () => {
-    const [isOpen, setIsOpen] = useState(false); // Toggle chat window
-    const [message, setMessage] = useState("");
-    const [messages, setMessages] = useState([]); // Chat messages
-    const [loading, setLoading] = useState(false);
-    const messagesEndRef = useRef(null); // Create a reference for the last message
-
-    const toggleChat = () => {
-        // Show default prompt when chat is opened
-        if (!isOpen && messages.length === 0) {
-            setMessages([{sender: "bot", text: "How can I help you win big?!"}]);
-        }
-        setIsOpen(!isOpen);
-    };
-
-    const handleChange = (e) => {
-        setMessage(e.target.value);
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!message.trim()) return;
-
-        const userMessage = {sender: "user", text: message};
-        setMessages((prevMessages) => [...prevMessages, userMessage]);
-        setMessage("");
-        setLoading(true);
-
-        try {
-            const data = await fetchChatResponse(message); // API call to backend
-            const botMessage = {sender: "bot", text: data.response};
-            setMessages((prevMessages) => [...prevMessages, botMessage]);
-        } catch (error) {
-            console.error("Error fetching chat response:", error);
-            setMessages((prevMessages) => [
-                ...prevMessages,
-                {sender: "bot", text: "Something went wrong. Please try again later."},
-            ]);
-        } finally {
-            setLoading(false);
-        }
-    };
+const Gemini = ({data}) => {
+    const [messages, setMessages] = useState([]);
+    const [input, setInput] = useState(""); // State for user input
+    const [isChatOpen, setIsChatOpen] = useState(false); // State to toggle chat visibility
+    const messagesEndRef = useRef(null);
 
     useEffect(() => {
-        // Scroll to the last message whenever 'messages' changes
+        if (data) {
+            const {playerName, trends} = data;
+
+            const insightsMessage = `
+                Betting Insights for ${playerName}:
+                ${Object.entries(trends || {})
+                .map(([bookmaker, trend]) => `
+                    ${bookmaker}:
+                      Over: ${trend.over?.direction || "N/A"} (${trend.over?.percentChange?.toFixed(2) || "N/A"}%)
+                      Under: ${trend.under?.direction || "N/A"} (${trend.under?.percentChange?.toFixed(2) || "N/A"}%)
+                    `)
+                .join("\n")}
+            `;
+
+            setMessages((prev) => [...prev, {sender: "bot", text: insightsMessage}]);
+        }
+    }, [data]);
+
+    useEffect(() => {
         if (messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({behavior: "smooth"});
         }
     }, [messages]);
 
-    return (
-        <div className="chat-container">
-            <div className="chat-button" onClick={toggleChat}>
-                💬
-            </div>
+    const handleSendMessage = async (event) => {
+        event.preventDefault();
+        if (input.trim() === "") return;
 
-            {isOpen && (
+        const userMessage = input.trim();
+        setMessages((prev) => [...prev, {sender: "user", text: userMessage}]);
+        setInput("");
+
+        try {
+            const response = await fetchChatResponse(userMessage);
+
+            if (Array.isArray(response.response)) {
+                const formattedResponse = response.response.map((item, index) => (
+                    `${index + 1}. ${item.home_team} vs ${item.away_team} - Odds: ${JSON.stringify(item.odds)}`
+                )).join("\n");
+                setMessages((prev) => [...prev, {sender: "bot", text: formattedResponse}]);
+            } else if (typeof response.response === "object") {
+                setMessages((prev) => [
+                    ...prev,
+                    {sender: "bot", text: "Here are the details:"},
+                    {sender: "bot", text: JSON.stringify(response.response, null, 2)},
+                ]);
+            } else {
+                setMessages((prev) => [...prev, {sender: "bot", text: response.response}]);
+            }
+        } catch (error) {
+            setMessages((prev) => [
+                ...prev,
+                {sender: "bot", text: "An error occurred while fetching the response."},
+            ]);
+        }
+    };
+
+    return (
+        <>
+            {/* Floating Chat Icon */}
+            {!isChatOpen && (
+                <button
+                    className="chat-bubble"
+                    onClick={() => setIsChatOpen(true)}
+                    aria-label="Open Chat"
+                >
+                    💬
+                </button>
+            )}
+
+            {/* Chat Window */}
+            {isChatOpen && (
                 <div className="chat-popup">
                     <div className="chat-header">
-                        <h2>💬 Rambling Gambling ChatBot</h2>
-                        <button className="close-button" onClick={toggleChat}>
+                        <h2>💬 Betting Insights</h2>
+                        <button
+                            className="close-button"
+                            onClick={() => setIsChatOpen(false)}
+                            aria-label="Close Chat"
+                        >
                             ✖
                         </button>
                     </div>
                     <div className="chat-response">
                         {messages.map((msg, idx) => (
-                            <p key={idx} className={msg.sender === "user" ? "user-message" : "bot-message"}>
+                            <div key={idx} className={msg.sender === "user" ? "user-message" : "bot-message"}>
                                 <strong>{msg.sender === "user" ? "You: " : "Bot: "}</strong>
-                                {msg.text}
-                            </p>
+                                {msg.sender === "bot" && msg.text.startsWith("<table")
+                                    ? <div dangerouslySetInnerHTML={{__html: msg.text}}/>
+                                    : msg.text}
+                            </div>
                         ))}
-                        {loading && <p>Loading...</p>}
-                        {/* Dummy div for scrolling */}
-                        <div ref={messagesEndRef}/>
+                        <div ref={messagesEndRef}></div>
                     </div>
-                    <form onSubmit={handleSubmit}>
+                    <form className="chat-form" onSubmit={handleSendMessage}>
                         <input
-                            className="chat-input"
                             type="text"
-                            value={message}
-                            onChange={handleChange}
-                            placeholder="Ask your question..."
+                            className="chat-input"
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            placeholder="Type your message..."
                         />
-                        <button
-                            className="send-button"
-                            type="submit"
-                            disabled={loading}>
-                            {loading ? "Sending..." : "Send"}
-                        </button>
+                        <button type="submit" className="send-button">Send</button>
                     </form>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 

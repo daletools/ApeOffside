@@ -1,8 +1,7 @@
-
 def calculate_arbitrage(odds_team1, odds_team2):
     """
     Given decimal odds for two outcomes, calculates if arbitrage exists.
-    Returns a tuple:
+    Returns:
         (is_arbitrage: bool, profit_percent: float)
     """
     try:
@@ -21,77 +20,84 @@ def calculate_arbitrage(odds_team1, odds_team2):
         return False, 0
 
 
-def find_arbitrage(games):
-    """
-    Parses raw game odds data (from OddsAPI) and finds arbitrage opportunities.
-
-    Args:
-        games (list): List of games from the Odds API response.
-
-    Returns:
-        List of dicts describing profitable arbitrage matchups.
-    """
+def find_arbitrage(games, market_key="player_points", include_same_book=False):
     opportunities = []
+    near_arbs = []
 
     for game in games:
-        bookmakers = game.get("bookmakers", [])
+        event = f"{game['home_team']} vs {game['away_team']}"
+        commence_time = game["commence_time"]
+        player_markets = {}
 
-        # Skip games with fewer than two bookmakers
-        if len(bookmakers) < 2:
-            continue
-
-        # Dictionary to collect all prices for each team
-        h2h_odds = {}
-
-        for bookmaker in bookmakers:
+        for bookmaker in game.get("bookmakers", []):
+            title = bookmaker["title"]
             for market in bookmaker.get("markets", []):
-                if market.get("key") == "h2h":  # Only care about moneyline (h2h) markets
-                    for outcome in market.get("outcomes", []):
-                        team = outcome.get("name")
-                        price = outcome.get("price")
-                        if team and price:
-                            h2h_odds.setdefault(team, []).append({
-                                "bookmaker": bookmaker["title"],
-                                "price": price
-                            })
-        if len(h2h_odds) != 2:
-            continue
+                if market["key"] != market_key:
+                    continue
 
-        team1, team2 = list(h2h_odds.keys())
+                for outcome in market.get("outcomes", []):
+                    name = outcome.get("name")
+                    player = outcome.get("description")
+                    price = outcome.get("price")
+                    point = outcome.get("point")
 
-        # Compare all bookmaker combinations for both teams
-        for t1_odds in h2h_odds[team1]:
-            for t2_odds in h2h_odds[team2]:
-                is_arb, profit = calculate_arbitrage(t1_odds["price"], t2_odds["price"])
-                if is_arb:
-                    # Store the profitable arbitrage opportunity
-                    opportunities.append({
-                        "home_team": game.get("home_team"),
-                        "away_team": game.get("away_team"),
-                        "commence_time": game.get("commence_time"),
-                        "team_1": {
-                            "name": team1,
-                            "bookmaker": t1_odds["bookmaker"],
-                            "price": t1_odds["price"]
-                        },
-                        "team_2": {
-                            "name": team2,
-                            "bookmaker": t2_odds["bookmaker"],
-                            "price": t2_odds["price"]
-                        },
-                        "profit_percent": profit
+                    if not all([name, player, price, point]):
+                        continue
+
+                    key = (player, point)
+                    player_markets.setdefault(key, {"Over": [], "Under": []})
+                    player_markets[key][name].append({
+                        "bookmaker": title,
+                        "price": price
                     })
 
-    return opportunities
+        for (player, point), sides in player_markets.items():
+            print(f"\n[CHECK] Player: {player} | Line: {point}")
+            print(f"  Over: {[o['bookmaker'] + '@' + str(o['price']) for o in sides['Over']]}")
+            print(f"  Under: {[u['bookmaker'] + '@' + str(u['price']) for u in sides['Under']]}")
 
-#VALUE BET DETECTOR
+            for over in sides["Over"]:
+                for under in sides["Under"]:
+                    if over["bookmaker"] == under["bookmaker"]:
+                        continue
+
+                    implied_1 = 1 / over["price"]
+                    implied_2 = 1 / under["price"]
+                    total = implied_1 + implied_2
+                    profit = round((1 - total) * 100, 2)
+
+                    entry = {
+                        "type": market_key,
+                        "event": event,
+                        "commence_time": commence_time,
+                        "player": player,
+                        "line": point,
+                        "side_1": {**over, "name": "Over"},
+                        "side_2": {**under, "name": "Under"},
+                    }
+
+                    if total < 1:
+                        entry["profit_percent"] = profit
+                        opportunities.append(entry)
+                    else:
+                        entry["implied_total"] = round(total, 3)
+                        near_arbs.append(entry)
+
+                opportunities = sorted(opportunities, key=lambda x: x["profit_percent"], reverse=True)[:3]
+                near_arbs = sorted(near_arbs, key=lambda x: x["implied_total"])[:3]
+
+    print(f"[DEBUG] Found {len(opportunities)} arbitrage opportunities.")
+    return opportunities, near_arbs
+
+
+# VALUE BET DETECTOR
 # Detects value bets based on deviation from consensus odds.
-#We'll return opportunities with EV% over a given threshold.
+# We'll return opportunities with EV% over a given threshold.
 def detect_value_bets(games, threshold=5.0):
     value_bets = []
 
     for game in games:
-        market_odds = {} # Dictionary to collect odds for each team
+        market_odds = {}  # Dictionary to collect odds for each team
 
         for bookmaker in game.get("bookmakers", []):
             for market in bookmaker.get("markets", []):
