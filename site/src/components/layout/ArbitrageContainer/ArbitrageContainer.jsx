@@ -1,5 +1,7 @@
 import React, {useState, useEffect} from "react";
 import {fetchPlayerPropArbitrage} from "../../../services/api";
+import {getCachedData, setCachedData} from "../../features/cache/useApiCache";
+
 
 function ArbitrageContainer() {
     const [selectedSport, setSelectedSport] = useState(null);
@@ -8,6 +10,7 @@ function ArbitrageContainer() {
     const [opportunities, setOpportunities] = useState({arbitrage: [], near_arbitrage: []});
 
     const [useMock, setUseMock] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     // Mock Data
     const mockOpportunities = {
@@ -127,34 +130,47 @@ function ArbitrageContainer() {
 
 
     useEffect(() => {
-        if (playerPropType) {
-            if (useMock) {
-                const mock = mockOpportunities[playerPropType] || {arbitrage: [], near_arbitrage: []};
-                setOpportunities(mock);
-            } else if (category === "player_props") {
-                setOpportunities({arbitrage: [], near_arbitrage: []});
-
-                fetchPlayerPropArbitrage(playerPropType)
-                    .then(data => {
-                        console.log("Fetched Data:", data);
-
-                        if (data && typeof data === "object" && Array.isArray(data.arbitrage)) {
-                            setOpportunities({
-                                arbitrage: data.arbitrage,
-                                near_arbitrage: data.near_arbitrage || [],
-                            });
-                        } else {
-                            console.error("Invalid API response", data);
-                            setOpportunities({arbitrage: [], near_arbitrage: []});
-                        }
-                    })
-                    .catch(err => {
-                        console.error("API fetch failed:", err);
-                        setOpportunities({arbitrage: [], near_arbitrage: []});
-                    });
-            }
+        //  Prevent running if any of the dependencies are invalid
+        if (!playerPropType || !category || !selectedSport || category !== "player_props") {
+            console.log("[DEBUG useEffect] Skipping due to invalid state");
+            return;
         }
-    }, [category, playerPropType, useMock]);
+
+        const cacheKey = `${selectedSport}_${playerPropType}`;
+        const cached = getCachedData(cacheKey);
+
+        //  If we have recent cached data, use it
+        if (cached) {
+            console.log(`[CACHE] ✅ Returning cached data for "${cacheKey}"`);
+            setOpportunities(cached);
+            setLoading(false);
+            return;
+        }
+
+        //  Otherwise, fetch new data
+        console.log(`[CACHE] ❌ No cache entry for "${cacheKey}", fetching new data...`);
+        setLoading(true);
+        setOpportunities({arbitrage: [], near_arbitrage: []});
+
+        fetchPlayerPropArbitrage(playerPropType)
+            .then(data => {
+                setLoading(false);
+                console.log("Fetched Data:", data);
+
+                if (data && typeof data === "object" && Array.isArray(data.arbitrage)) {
+                    setOpportunities(data);
+                    setCachedData(cacheKey, data);
+                } else {
+                    console.error("Invalid API response", data);
+                    setOpportunities({arbitrage: [], near_arbitrage: []});
+                }
+            })
+            .catch(err => {
+                setLoading(false);
+                console.error("API fetch failed:", err);
+                setOpportunities({arbitrage: [], near_arbitrage: []});
+            });
+    }, [category, playerPropType, selectedSport]);
 
 
     const handleMockLoad = () => {
@@ -262,17 +278,29 @@ function ArbitrageContainer() {
 
             {/* Opportunities Display */}
             {playerPropType && (
+
                 <div style={{marginTop: "2rem"}}>
                     <h4>
                         Arbitrage Opportunities for:{" "}
                         {playerPropType.replace("player_", "").replace(/_/g, " ").toUpperCase()}
                     </h4>
-
+                    {/* No Opportunities */}
+                    {!loading &&
+                        opportunities?.arbitrage?.length === 0 && (
+                            <div>
+                                <p>No arbitrage opportunities available right now. Try checking back later —
+                                    these change often!</p>
+                            </div>
+                        )}
+                    {/*  Show loading indicator */}
+                    {loading && (
+                        <p style={{fontStyle: "italic", color: "#555"}}>
+                            ⏳ Loading opportunities, please wait...
+                        </p>
+                    )}
                     {(opportunities?.arbitrage?.length === 0 && opportunities?.near_arbitrage?.length === 0) ? (
 
                         <div>
-                            <p>No arbitrage opportunities available right now. Try checking back later — these change
-                                often!</p>
                             <button onClick={handleMockLoad}>Show Example with Mock Data</button>
                         </div>
                     ) : (
@@ -298,7 +326,7 @@ function ArbitrageContainer() {
                             {/* Near-Arbitrage Section */}
                             {opportunities?.near_arbitrage?.length > 0 && (
                                 <div>
-                                    <h5>🔍 Near-Arbitrage Opportunities</h5>
+                                    <h5> Near-Arbitrage Opportunities</h5>
                                     <ul>
                                         {opportunities.near_arbitrage.map((opp, idx) => (
                                             <li key={`near-${idx}`} style={{marginBottom: '1rem', opacity: 0.8}}>
@@ -323,15 +351,6 @@ function ArbitrageContainer() {
                                 </div>
                             )}
 
-
-                            {/* No Opportunities */}
-                            {opportunities?.arbitrage?.length === 0 && opportunities?.near_arbitrage?.length === 0 && (
-                                <div>
-                                    <p>No arbitrage opportunities available right now. Try checking back later — these
-                                        change often!</p>
-                                    <button onClick={handleMockLoad}>Show Example with Mock Data</button>
-                                </div>
-                            )}
 
                         </>
                     )}
