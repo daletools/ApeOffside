@@ -8,10 +8,6 @@ import google.generativeai as genai
 from django.conf import settings
 from server.settings import GEMINI_KEY
 import re
-from bs4 import BeautifulSoup
-from transformers import pipeline
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 
 
 # # Path to context file (adjust as needed)
@@ -37,78 +33,6 @@ def fetch_odds_data(sport):
         return {"error": f"An error occurred: {str(e)}"}
 
 
-# def calculate_relevance(query, content):
-#     vectorizer = TfidfVectorizer().fit_transform([query, content])
-#     vectors = vectorizer.toarray()
-#     return cosine_similarity([vectors[0]], [vectors[1]])[0][0]
-#
-#
-# def perform_search_and_extract(query):
-#     url = "https://www.googleapis.com/customsearch/v1"
-#     params = {
-#         "key": settings.SEARCH_API_KEY,
-#         "cx": settings.SEARCH_ENGINE_ID,
-#         "q": query,
-#     }
-#     try:
-#         response = requests.get(url, params=params)
-#         if response.status_code != 200:
-#             return [
-#                 {"title": "Error", "content": f"Failed to fetch search results. Status code: {response.status_code}"}]
-#
-#         search_results = response.json().get("items", [])
-#         if not search_results:
-#             return [{"title": "No Results", "content": "No relevant results found for your query."}]
-#
-#         extracted_content = []
-#         for result in search_results[:3]:  # Limit to top 3 results
-#             try:
-#                 page_response = requests.get(result["link"], timeout=5)
-#                 soup = BeautifulSoup(page_response.content, "html.parser")
-#                 paragraphs = soup.find_all("p")
-#                 text = " ".join([p.get_text() for p in paragraphs[:5]])  # Limit to first 5 paragraphs
-#
-#                 relevance = calculate_relevance(query, text)
-#                 if relevance > 0.2:  # Adjust threshold as needed
-#                     extracted_content.append({"title": result["title"], "content": text, "relevance": relevance})
-#             except Exception as e:
-#                 extracted_content.append({"title": result["title"], "content": f"Error extracting content: {str(e)}"})
-#
-#         if not extracted_content:
-#             return [{"title": "No Relevant Content", "content": "No relevant content could be extracted."}]
-#
-#         extracted_content.sort(key=lambda x: x.get("relevance", 0), reverse=True)
-#         return extracted_content
-#
-#     except Exception as e:
-#         return [{"title": "Error", "content": f"An error occurred: {str(e)}"}]
-#
-#
-# # Step 3: Summarize the extracted content
-# def summarize_content(content):
-#     try:
-#         summaries = []
-#         for item in content:
-#             input_length = len(item["content"].split())
-#             max_length = max(5, min(50, input_length // 2))
-#             min_length = max(3, min(max_length - 1, input_length // 4))
-#
-#             summary = summarizer(item["content"], max_length=max_length, min_length=min_length, do_sample=False)
-#             summaries.append({"title": item["title"], "summary": summary[0]["summary_text"]})
-#
-#         return summaries
-#     except Exception as e:
-#         return [{"title": "Error", "summary": f"Error summarizing content: {str(e)}"}]
-
-
-# def load_context():
-#     try:
-#         with open(CONTEXT_FILE, "r", encoding="utf-8") as file:
-#             return file.read()
-#     except Exception:
-#         return ""
-
-
 # system_context = load_context()
 
 # Configure the GenAI API key
@@ -120,34 +44,13 @@ chat_session = genai.GenerativeModel("gemini-1.5-flash").start_chat(
         {
             "role": "user",
             "parts": [
-                "Your primary role is to provide accurate, concise, and actionable advice regarding this app's features, tools, "
-                "and topics, such as finding value in betting odds, minimizing risks, and tracking results effectively. "
-                "Do not engage in unrelated topics or provide information outside the scope of sports betting and arbitrage. "
-                "Always keep responses brief, to the point, and aligned with the needs of the user interacting with this app. "
-                "If you are unsure about a query or it falls outside this domain, politely suggest the user narrow down their "
-                "question to sports betting or this app’s features."
+                "Your task is to tease and make the user feel stupid for asking any sort of question no matter what the topic is"
             ]
         }
     ]
 )
 
-
-def perform_search(query):
-    url = "https://www.googleapis.com/customsearch/v1"
-    params = {
-        "key": settings.SEARCH_API_KEY,
-        "cx": settings.SEARCH_ENGINE_ID,
-        "q": query,
-    }
-    response = requests.get(url, params=params)
-    if response.status_code == 200:
-        try:
-            return response.json().get("items", [])[:5]  # Limit to top 5 results
-        except ValueError:
-            return []
-    return [{"title": "Error", "link": "Failed to fetch search results."}]
-
-
+# gemini_view function is used to handle requests to the Gemini API such as odds and statistics
 @csrf_exempt
 def gemini_view(request):
     if request.method == 'GET':
@@ -161,7 +64,7 @@ def gemini_view(request):
                 return JsonResponse({"response": "Chat session could not be initialized. Please try again later."},
                                     status=500)
 
-            # Check if the user is asking about odds
+                # Check if the user is asking about odds
             if re.search(r"\bodds\b", user_message, re.IGNORECASE):
                 sport = "basketball_nba"  # Default sport; you can extract this from the user message
                 odds_data = fetch_odds_data(sport)
