@@ -132,7 +132,7 @@ function ArbitrageContainer() {
     useEffect(() => {
         //  Prevent running if any of the dependencies are invalid
         if (!playerPropType || !category || !selectedSport || category !== "player_props") {
-            console.log("[DEBUG useEffect] Skipping due to invalid state");
+            //console.log("[DEBUG useEffect] Skipping due to invalid state");
             return;
         }
 
@@ -141,14 +141,14 @@ function ArbitrageContainer() {
 
         //  If we have recent cached data, use it
         if (cached) {
-            console.log(`[CACHE] ✅ Returning cached data for "${cacheKey}"`);
+        //    console.log(`[CACHE] ✅ Returning cached data for "${cacheKey}"`);
             setOpportunities(cached);
             setLoading(false);
             return;
         }
 
         //  Otherwise, fetch new data
-        console.log(`[CACHE] ❌ No cache entry for "${cacheKey}", fetching new data...`);
+ //       console.log(`[CACHE] ❌ No cache entry for "${cacheKey}", fetching new data...`);
         setLoading(true);
         setOpportunities({arbitrage: [], near_arbitrage: []});
 
@@ -159,6 +159,7 @@ function ArbitrageContainer() {
 
                 if (data && typeof data === "object" && Array.isArray(data.arbitrage)) {
                     setOpportunities(data);
+                   // console.log("[DEBUG] Received arbitrage data:", data.arbitrage);
                     setCachedData(cacheKey, data);
                 } else {
                     console.error("Invalid API response", data);
@@ -314,8 +315,17 @@ function ArbitrageContainer() {
                                                 <strong>{opp.type.replace(/_/g, ' ').toUpperCase()}</strong><br/>
                                                 <em>{opp.player || "N/A"} — Line: {opp.line ?? "?"} pts</em><br/>
                                                 {opp.event}<br/>
-                                                {opp.side_1.name} ({opp.side_1.bookmaker} @ {opp.side_1.price}) vs{" "}
-                                                {opp.side_2.name} ({opp.side_2.bookmaker} @ {opp.side_2.price})<br/>
+                                                {opp.side_1.name} (
+                                                <a href={opp.side_1.site} target="_blank" rel="noopener noreferrer">
+                                                    {opp.side_1.bookmaker}
+                                                </a> @ {opp.side_1.price}
+                                                ) vs{" "}
+                                                {opp.side_2.name} (
+                                                <a href={opp.side_2.site} target="_blank" rel="noopener noreferrer">
+                                                    {opp.side_2.bookmaker}
+                                                </a> @ {opp.side_2.price}
+                                                )
+                                                <br/>
                                                 <strong>Arbitrage: {opp.profit_percent}%</strong>
                                             </li>
                                         ))}
@@ -333,8 +343,17 @@ function ArbitrageContainer() {
                                                 <strong>{opp.type.replace(/_/g, ' ').toUpperCase()}</strong><br/>
                                                 <em>{opp.player || "N/A"} — Line: {opp.line ?? "?"} pts</em><br/>
                                                 {opp.event}<br/>
-                                                {opp.side_1.name} ({opp.side_1.bookmaker} @ {opp.side_1.price}) vs{" "}
-                                                {opp.side_2.name} ({opp.side_2.bookmaker} @ {opp.side_2.price})<br/>
+                                                {opp.side_1.name} (
+                                                <a href={opp.side_1.site} target="_blank" rel="noopener noreferrer">
+                                                    {opp.side_1.bookmaker}
+                                                </a> @ {opp.side_1.price}
+                                                ) vs{" "}
+                                                {opp.side_2.name} (
+                                                <a href={opp.side_2.site} target="_blank" rel="noopener noreferrer">
+                                                    {opp.side_2.bookmaker}
+                                                </a> @ {opp.side_2.price}
+                                                )
+                                                <br/>
                                                 <strong>
                                                     Combined Implied Probability: {opp.implied_total.toFixed(3)}
                                                 </strong><br/>

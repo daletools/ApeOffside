@@ -22,6 +22,7 @@ def fetch_player_prop_odds(sport, market_key, limit=5):
         events = events_response.json()[:limit]
 
         all_odds = []
+
         for event in events:
             event_id = event["id"]
             odds_url = f"{ODDS_BASE_URL}/v4/sports/{sport}/events/{event_id}/odds/"
@@ -32,8 +33,18 @@ def fetch_player_prop_odds(sport, market_key, limit=5):
                 "oddsFormat": "decimal"
             }
             event_response = requests.get(odds_url, params=odds_params)
-            if event_response.status_code == 200:
-                all_odds.append(event_response.json())
+            if event_response.status_code != 200:
+                continue
+
+            event_data = event_response.json()
+            event_data["home_team"] = event.get("home_team")
+            event_data["away_team"] = event.get("away_team")
+
+            # Inject the site link per bookmaker
+            for bookmaker in event_data.get("bookmakers", []):
+                bookmaker["site"] = bookmaker.get("site", None)  # Typically already provided
+
+            all_odds.append(event_data)
 
         return all_odds
 

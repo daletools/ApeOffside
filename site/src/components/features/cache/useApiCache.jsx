@@ -9,7 +9,7 @@ export const getCachedData = (key) => {
   const isExpired = Date.now() - entry.timestamp > 60 * 1000;
   if (isExpired) return null;
 
-  console.log(`[CACHE] ✅ Returning cached data for "${key}" (${Date.now() - entry.timestamp}ms old)`);
+ // console.log(`[CACHE] ✅ Returning cached data for "${key}" (${Date.now() - entry.timestamp}ms old)`);
   return entry.data;
 };
 
@@ -18,5 +18,5 @@ export const setCachedData = (key, data) => {
     data,
     timestamp: Date.now(),
   };
-  console.log(`[CACHE] 💾 Stored fresh data for "${key}"`);
+ // console.log(`[CACHE] 💾 Stored fresh data for "${key}"`);
 };
