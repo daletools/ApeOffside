@@ -214,7 +214,7 @@ chat_session = genai.GenerativeModel("gemini-1.5-flash").start_chat(
 
 # gemini_view function is used to handle requests to the Gemini API such as odds and statistics
 @csrf_exempt
-def gemini_view(request):
+def gemini_view(request, players=None, player_name=None):
     if request.method == 'GET':
         try:
             user_message = request.GET.get("message", "").strip()
