@@ -50,7 +50,7 @@ const WelcomeScreen = () => {
                 }}
             />
             {/*<h3 style={{fontFamily: 'Courier New, monospace', fontSize: '1.2rem'}}>{displayedText}</h3>*/}
-            <h3 style={{fontFamily: 'Copperplate, fantasy', letterSpacing: '1px', fontSize: '1.2rem'}}>{displayedText}</h3>
+            <h3 style={{color: 'black', fontFamily: 'Copperplate fantasy, serif', letterSpacing: '1px', fontSize: '1.2rem'}}>{displayedText}</h3>
 
 
             <style>

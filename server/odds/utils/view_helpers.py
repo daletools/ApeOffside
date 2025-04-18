@@ -33,6 +33,7 @@ def parse_event_odds(full_data):
             curr[outcome['name']] = {
                 'price': outcome['price'],
                 'point': outcome['point'],
+                'link': outcome['link'],
             }
 
     return parsed_data
