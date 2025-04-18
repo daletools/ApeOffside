@@ -43,28 +43,44 @@ export const fetchOddsAPI = async (sport) => {
     return response.data;
 };
 
-export const fetchChatResponse = async (message) => {
+export const fetchChatResponse = async (message, promptType = '') => {
     // Using GET request to fetch chat response
     try {
-        const response = await api.get(`/insights/chatbot/?message=${message}`);
+        let url = '/insights/chatbot/';
+        const params = new URLSearchParams();
+
+        if (message) {
+            params.append('message', message);
+        }
+
+        if (promptType) {
+            params.append('prompt_type', promptType);
+        }
+
+        const queryString = params.toString();
+        if (queryString) {
+            url += `?${queryString}`;
+        }
+
+        const response = await api.get(url);
         return response.data;
     } catch (error) {
         console.error("Error fetching chat response:", error);
+        return { response: "Sorry, there was an error processing your request." };
     }
-
-
 };
 
 export async function fetchArbitrageOpportunities() {
-  const res = await fetch("http://localhost:8000/arbitrage/opportunities/");
-  return await res.json();
+    const res = await fetch("http://localhost:8000/arbitrage/opportunities/");
+    return await res.json();
 }
 
 export async function fetchValueBets() {
-  const res = await fetch("http://localhost:8000/arbitrage/valuebets/");
-  return await res.json();
+    const res = await fetch("http://localhost:8000/arbitrage/valuebets/");
+    return await res.json();
 }
+
 export async function fetchPlayerPropArbitrage(market = "player_points") {
-  const res = await fetch(`http://localhost:8000/arbitrage/player-props/?market=${market}`);
-  return await res.json();
+    const res = await fetch(`http://localhost:8000/arbitrage/player-props/?market=${market}`);
+    return await res.json();
 }
