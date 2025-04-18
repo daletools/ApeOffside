@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PlayerBlock from "../../features/PlayerBlock.jsx";
 import { fetchCurrentGames, fetchGameOdds } from "../../../services/api.jsx";
 import useWindowSize from '../../../hooks/useWindowSize';
+import Gemini from "../../features/Gemini.jsx";
 import GameCard from "./GameCard.jsx";
 
 function PropBetContainer() {
@@ -13,6 +14,7 @@ function PropBetContainer() {
     const [error, setError] = useState(null);
     const [oddsLoading, setOddsLoading] = useState(false);
     const [oddsError, setOddsError] = useState(null);
+    const [selectedPlayerData, setSelectedPlayerData] = useState(null);
     const { width } = useWindowSize();
 
     const getColumns = () => {
@@ -81,6 +83,10 @@ function PropBetContainer() {
                 ? prev.filter(name => name !== playerName)
                 : [...prev, playerName]
         );
+    };
+
+    const handleGetInsights = (playerData) => {
+        setSelectedPlayerData(playerData);
     };
 
     return (
@@ -210,6 +216,7 @@ function PropBetContainer() {
                                                 playerName={player}
                                                 playerData={data?.data?.player[player]}
                                                 onRemove={() => togglePlayerTracking(player)}
+                                                onGetInsights={handleGetInsights}
                                             />
                                         ))}
                                     </div>
@@ -229,6 +236,9 @@ function PropBetContainer() {
                     )}
                 </div>
             )}
+
+            {/* Render Gemini chatbot with selected player data */}
+            {selectedPlayerData && <Gemini data={selectedPlayerData} />}
         </div>
     );
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { FaTimes, FaChartLine, FaExternalLinkAlt } from 'react-icons/fa';
 
-const PlayerBlock = ({ playerName, playerData, onRemove }) => {
+const PlayerBlock = ({ playerName, playerData, onRemove, onGetInsights }) => {
     const [historicalData, setHistoricalData] = useState([]);
     const [showTrends, setShowTrends] = useState(false);
 
@@ -63,9 +63,12 @@ const PlayerBlock = ({ playerName, playerData, onRemove }) => {
             historicalData,
             trends
         };
-        onGetInsights(insightsData);
-        console.log("Data ready for AI chatbot:", insightsData);
-        //Connect to AI chatbot
+        if (typeof onGetInsights === 'function') {
+            onGetInsights(insightsData);
+            console.log("Data ready for AI chatbot:", insightsData);
+        } else {
+            console.error("onGetInsights is not a function");
+        }
     };
 
     const renderTrendIndicator = (trend) => {
