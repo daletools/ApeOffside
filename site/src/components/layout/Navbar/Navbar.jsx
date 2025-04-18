@@ -14,7 +14,7 @@ function Navbar({ activeComponent, setActiveComponent }) {
             overflowY: 'auto'
         }}>
             {/*<h2>Navigation</h2>*/}
-            <h2 style={{fontFamily: 'Copperplate, fantasy', letterSpacing: '2px'}}>NXVIGXTION</h2>
+            <h2 style={{fontFamily: 'Copperplate, serif', letterSpacing: '2px'}}>NAVIGATION</h2>
             <ul style={{listStyle: 'none', padding: 0}}>
                 <li style={{margin: '10px 0'}}>
                     <button

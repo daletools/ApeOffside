@@ -13,7 +13,7 @@ const PlayerBlock = ({ playerName, playerData, onRemove }) => {
                     timestamp: new Date().toISOString(),
                     data: playerData
                 };
-                return [...prev, newData].slice(-10); // Keep last 10 entries
+                return [...prev, newData].slice(-10); // Keep the last 10 entries
             });
         }
     }, [playerData]);
@@ -108,10 +108,6 @@ const PlayerBlock = ({ playerName, playerData, onRemove }) => {
                     textDecoration: 'none',
                     border: '1px solid #cce0ff',
                     transition: 'all 0.2s',
-                    ':hover': {
-                        backgroundColor: '#d9e9ff',
-                        textDecoration: 'underline'
-                    }
                 }}
                 aria-label={`Bet ${type} on ${playerName}`}
             >
@@ -161,9 +157,6 @@ const PlayerBlock = ({ playerName, playerData, onRemove }) => {
                         fontSize: '1.2em',
                         padding: '5px',
                         transition: 'color 0.2s',
-                        ':hover': {
-                            color: '#F44336'
-                        }
                     }}
                     aria-label="Remove player"
                 >
@@ -179,8 +172,7 @@ const PlayerBlock = ({ playerName, playerData, onRemove }) => {
                         paddingBottom: '15px',
                         borderBottom: '1px solid #f5f5f5'
                     }}>
-                        {/* ... (bookmaker header remains the same) */}
-
+                        {bookmaker}
                         <div style={{
                             display: 'flex',
                             justifyContent: 'space-between',
@@ -199,7 +191,6 @@ const PlayerBlock = ({ playerName, playerData, onRemove }) => {
                             </div>
                         </div>
 
-                        {/* Centered Point Line */}
                         <div style={{
                             textAlign: 'center',
                             margin: '8px 0 4px',
@@ -235,9 +226,6 @@ const PlayerBlock = ({ playerName, playerData, onRemove }) => {
                     gap: '8px',
                     fontSize: '0.9rem',
                     transition: 'background-color 0.2s',
-                    ':hover': {
-                        backgroundColor: '#3d8b40'
-                    }
                 }}
             >
                 <FaChartLine /> Get Insights
