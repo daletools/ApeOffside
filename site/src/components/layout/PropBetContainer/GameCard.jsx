@@ -9,9 +9,6 @@ const GameCard = ({ game, isSelected, onClick }) => (
             cursor: 'pointer',
             backgroundColor: isSelected ? 'lightgreen' : 'darkgray',
             transition: 'all 0.2s',
-            ':hover': {
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-            }
         }}
         onClick={onClick}
     >

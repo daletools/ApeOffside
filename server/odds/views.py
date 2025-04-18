@@ -71,7 +71,8 @@ def fetch_event_odds(request, sport, event_id, markets):
            f"/v4/sports/{sport}"
            f"/events/{event_id}"
            f"/odds?apiKey={settings.API_KEY}"
-           f"&regions=us&markets={markets}")
+           f"&regions=us&markets={markets}"
+           f"&includeLinks=true")
 
     try:
         response = requests.get(url)
@@ -80,6 +81,8 @@ def fetch_event_odds(request, sport, event_id, markets):
                 {'error': 'Failed to fetch odds', 'details': response.text},
                 status=response.status_code
             )
+
+        print(response.json())
 
         full_data = response.json()
         parsed_data = parse_event_odds(full_data)
