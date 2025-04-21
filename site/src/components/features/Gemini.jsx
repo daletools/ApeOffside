@@ -1,29 +1,29 @@
-import {useState, useEffect, useRef} from "react";
+import {useState, useEffect, useRef, useImperativeHandle, forwardRef} from "react";
 import {fetchChatResponse} from "../../services/api.jsx";
 import "../../Gemini.css";
 
-const Gemini = ({data}) => {
+const Gemini = (data) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState(""); // State for user input
     const [isChatOpen, setIsChatOpen] = useState(false); // State to toggle chat visibility
     const messagesEndRef = useRef(null);
 
     useEffect(() => {
-        if (data) {
-            const {playerName, trends} = data;
+        console.log("Gemini received:", data);
+        if (!data) return;
 
-            const insightsMessage = `
-                Betting Insights for ${playerName}:
-                ${Object.entries(trends || {})
-                .map(([bookmaker, trend]) => `
-                    ${bookmaker}:
-                      Over: ${trend.over?.direction || "N/A"} (${trend.over?.percentChange?.toFixed(2) || "N/A"}%)
-                      Under: ${trend.under?.direction || "N/A"} (${trend.under?.percentChange?.toFixed(2) || "N/A"}%)
-                    `)
-                .join("\n")}
-            `;
+        let analysis = data.data || {};
 
-            setMessages((prev) => [...prev, {sender: "bot", text: insightsMessage}]);
+        if (analysis.type === 'player_analysis_request') {
+
+            let response = JSON.stringify(analysis.data);
+
+            setMessages(prev => [...prev, {
+                sender: 'bot',
+                text: response,
+                timestamp: new Date()
+            }]);
+            setIsChatOpen(true);
         }
     }, [data]);
 
@@ -64,6 +64,20 @@ const Gemini = ({data}) => {
                 {sender: "bot", text: "An error occurred while fetching the response."},
             ]);
         }
+    };
+
+    const handlePlayerInsights = async (data) => {
+        const response = `Analyzing ${data.playerName}...\n` +
+            `Current trends:\n${
+                Object.entries(data.trends).map(([bm, trend]) =>
+                    `${bm}: Over ${trend.over.direction} ${trend.over.percentChange.toFixed(1)}%`
+                ).join('\n')
+            }`;
+
+        setMessages(prev => [...prev, {
+            sender: 'bot',
+            text: response
+        }]);
     };
 
     return (

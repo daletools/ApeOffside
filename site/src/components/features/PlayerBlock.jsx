@@ -1,39 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { FaTimes, FaChartLine, FaExternalLinkAlt } from 'react-icons/fa';
 
-const PlayerBlock = ({ playerName, playerData, onRemove }) => {
-    const [historicalData, setHistoricalData] = useState([]);
+const PlayerBlock = ({ playerName, playerData, history, onRemove, onGetInsights }) => {
     const [showTrends, setShowTrends] = useState(false);
-
-    // Update historical data when new props arrive
-    useEffect(() => {
-        if (playerData) {
-            setHistoricalData(prev => {
-                const newData = {
-                    timestamp: new Date().toISOString(),
-                    data: playerData
-                };
-                return [...prev, newData].slice(-10); // Keep the last 10 entries
-            });
-        }
-    }, [playerData]);
-
-    // Memoized trend calculations
-    const trends = useMemo(() => {
-        if (historicalData.length < 2) return null;
-
-        const calculatedTrends = {};
-        const bookmakers = Object.keys(historicalData[0].data || {});
-
-        bookmakers.forEach(bookmaker => {
-            calculatedTrends[bookmaker] = {
-                over: calculatePriceTrend(historicalData, bookmaker, 'Over'),
-                under: calculatePriceTrend(historicalData, bookmaker, 'Under')
-            };
-        });
-
-        return calculatedTrends;
-    }, [historicalData]);
 
     const calculatePriceTrend = (history, bookmaker, type) => {
         const prices = history.map(entry =>
@@ -56,16 +25,33 @@ const PlayerBlock = ({ playerName, playerData, onRemove }) => {
         };
     };
 
+    // Memoized trend calculations
+    const trends = useMemo(() => {
+        if (history.length < 2) return null;
+
+        const calculatedTrends = {};
+        const bookmakers = Object.keys(history[0].data || {});
+
+        bookmakers.forEach(bookmaker => {
+            calculatedTrends[bookmaker] = {
+                over: calculatePriceTrend(history, bookmaker, 'Over'),
+                under: calculatePriceTrend(history, bookmaker, 'Under')
+            };
+        });
+
+        return calculatedTrends;
+    }, [history]);
+
     const handleGetInsights = () => {
-        const insightsData = {
-            playerName,
-            currentOdds: playerData,
-            historicalData,
-            trends
-        };
-        onGetInsights(insightsData);
-        console.log("Data ready for AI chatbot:", insightsData);
-        //Connect to AI chatbot
+        onGetInsights?.({
+            type: 'player_analysis_request', // Add this type identifier
+            data: {
+                playerName: playerName,
+                currentOdds: playerData,
+                trends: trends,
+                last10updates: history
+            }
+        });
     };
 
     const renderTrendIndicator = (trend) => {

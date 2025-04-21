@@ -4,7 +4,7 @@ import { fetchCurrentGames, fetchGameOdds } from "../../../services/api.jsx";
 import useWindowSize from '../../../hooks/useWindowSize';
 import GameCard from "./GameCard.jsx";
 
-function PropBetContainer() {
+function PropBetContainer({ onSendToChat }) {
     const [games, setGames] = useState([]);
     const [selectedGame, setSelectedGame] = useState(null);
     const [data, setData] = useState(null);
@@ -14,12 +14,20 @@ function PropBetContainer() {
     const [oddsLoading, setOddsLoading] = useState(false);
     const [oddsError, setOddsError] = useState(null);
     const { width } = useWindowSize();
+    const [playerHistories, setPlayerHistories] = useState({});
 
     const getColumns = () => {
         if (width < 600) return 1;
         if (width < 900) return 2;
         if (width < 1200) return 3;
         return 4;
+    };
+
+    const handleGetInsights = (playerData) => {
+        console.log("Preparing insights data:", playerData);
+        if (onSendToChat) {
+            onSendToChat(playerData);
+        }
     };
 
     // Load games on startup
@@ -75,6 +83,27 @@ function PropBetContainer() {
         return () => clearInterval(intervalId);
     }, [selectedGame]);
 
+    useEffect(() => {
+        if (data?.data?.player) {
+            setPlayerHistories(prev => {
+                const updated = {...prev};
+                Object.entries(data.data.player).forEach(([playerName, playerData]) => {
+                    updated[playerName] = [
+                        ...(updated[playerName]?.slice(-9) || []),
+                        {
+                            timestamp: new Date().toISOString(),
+                            data: playerData
+                        }
+                    ];
+                    if (trackedPlayers.includes(playerName)) {
+                        //console.log(`Updated history for ${playerName}`, updated[playerName]);
+                    }
+                });
+                return updated;
+            });
+        }
+    }, [data]);
+
     const togglePlayerTracking = (playerName) => {
         setTrackedPlayers(prev =>
             prev.includes(playerName)
@@ -82,6 +111,17 @@ function PropBetContainer() {
                 : [...prev, playerName]
         );
     };
+
+    const renderPlayerBlock = (player) => (
+        <PlayerBlock
+            key={player}
+            playerName={player}
+            playerData={data?.data?.player[player]}
+            history={playerHistories[player] || []}
+            onRemove={() => togglePlayerTracking(player)}
+            onGetInsights={handleGetInsights}
+        />
+    );
 
     return (
         <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
@@ -204,14 +244,7 @@ function PropBetContainer() {
                                         gridTemplateColumns: `repeat(auto-fill, minmax(${width < 600 ? '100%' : '300px'}, 1fr))`,
                                         gap: '20px'
                                     }}>
-                                        {trackedPlayers.map(player => (
-                                            <PlayerBlock
-                                                key={player}
-                                                playerName={player}
-                                                playerData={data?.data?.player[player]}
-                                                onRemove={() => togglePlayerTracking(player)}
-                                            />
-                                        ))}
+                                        {trackedPlayers.map(renderPlayerBlock)}
                                     </div>
                                 ) : (
                                     <div style={{
