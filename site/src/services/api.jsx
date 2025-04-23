@@ -70,6 +70,17 @@ export const fetchChatResponse = async (message, promptType = '') => {
     }
 };
 
+export const fetchInsightsAPI = async (data) => {
+    try {
+        console.log("Fetching insights via POST", data);
+        const response = await api.post('/insights/insights/', data); // POST with JSON body
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching insights:", error);
+        throw error; // Re-throw to handle in the component
+    }
+};
+
 export async function fetchArbitrageOpportunities() {
     const res = await fetch("http://localhost:8000/arbitrage/opportunities/");
     return await res.json();

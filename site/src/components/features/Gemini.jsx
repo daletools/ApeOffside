@@ -1,5 +1,5 @@
 import {useState, useEffect, useRef, useImperativeHandle, forwardRef} from "react";
-import {fetchChatResponse} from "../../services/api.jsx";
+import {fetchChatResponse, fetchInsightsAPI} from "../../services/api.jsx";
 import "../../Gemini.css";
 
 const Gemini = (data) => {
@@ -17,15 +17,17 @@ const Gemini = (data) => {
         let analysis = data.data || {};
 
         if (analysis.type === 'player_analysis_request') {
+            console.log('Received analysis request', analysis);
 
-            let response = JSON.stringify(analysis.data);
+            let response = analysis;
 
             setMessages(prev => [...prev, {
-                sender: 'bot',
-                text: response,
+                sender: 'user',
+                text: `I'd like insights on ${response.playerName}'s odds for this game.`,
                 timestamp: new Date()
             }]);
             setIsChatOpen(true);
+            handlePlayerInsights(response);
         }
     }, [data]);
 
@@ -170,17 +172,19 @@ const Gemini = (data) => {
     };
 
     const handlePlayerInsights = async (data) => {
-        const response = `Analyzing ${data.playerName}...\n` +
-            `Current trends:\n${
-                Object.entries(data.trends).map(([bm, trend]) =>
-                    `${bm}: Over ${trend.over.direction} ${trend.over.percentChange.toFixed(1)}%`
-                ).join('\n')
-            }`;
+        try {
+            const response = await fetchInsightsAPI(data)
 
-        setMessages(prev => [...prev, {
-            sender: 'bot',
-            text: response
-        }]);
+            setMessages(prev => [...prev, {
+                sender: 'bot',
+                text: response
+            }]);
+        } catch (error) {
+            setMessages((prev) => [
+                ...prev,
+                {sender: "bot", text: "An error occurred while fetching the response."},
+            ]);
+        }
     };
 
     return (

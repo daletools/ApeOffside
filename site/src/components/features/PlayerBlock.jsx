@@ -58,6 +58,7 @@ const PlayerBlock = ({ playerName, playerData, onRemove, onGetInsights }) => {
 
     const handleGetInsights = () => {
         const insightsData = {
+            type: 'player_analysis_request',
             playerName,
             currentOdds: playerData,
             historicalData,

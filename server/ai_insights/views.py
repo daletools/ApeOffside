@@ -6,13 +6,13 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import google.generativeai as genai
 from django.conf import settings
-from server.settings import GEMINI_KEY
+from server.settings import GEMINI_KEY, BALLDONTLIE_API_KEY
 import re
-from decouple import config
+from datetime import datetime
 
 from balldontlie import BalldontlieAPI
 
-api = BalldontlieAPI(api_key=config('BALLDONTLIE_API_KEY'))
+api = BalldontlieAPI(api_key=BALLDONTLIE_API_KEY)
 
 
 def fetch_player_season_stats(player_id):
@@ -62,6 +62,134 @@ def fetch_player_season_stats(player_id):
     except Exception as e:
         print(f"Error fetching player season stats: {str(e)}")
         return None
+
+
+@csrf_exempt
+def fetch_player_insights(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            print("Received betting data")
+
+            if not data.get('playerName') or not data.get('currentOdds'):
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Missing playerName or currentOdds in request'
+                }, status=400)
+
+            # Step 1: Fetch player stats from balldontlie API
+            player_name = data['playerName']
+            first, last = player_name.split(' ', 1)
+            players = api.nba.players.list(first_name=first, last_name=last).data
+
+
+            if not players:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f'Player {player_name} not found'
+                }, status=404)
+
+            player = players[0]
+            print(f"Found player: {player.first_name} {player.last_name}")
+
+            player_id = player.id
+            # player_stats = fetch_player_stats(player_id)
+            #
+            # if not player_stats:
+            #     return JsonResponse({
+            #         'status': 'error',
+            #         'message': 'Failed to fetch player stats'
+            #     }, status=500)
+
+            # Step 2: Prepare odds analysis
+            def format_odds(bookmaker):
+                return (
+                    f"• {bookmaker}: Over {data['currentOdds'][bookmaker]['Over']['point']} @ {data['currentOdds'][bookmaker]['Over']['price']} "
+                    f"| Under @ {data['currentOdds'][bookmaker]['Under']['price']}"
+                )
+
+            odds_analysis = "\n".join([format_odds(book) for book in data['currentOdds']])
+
+            # Step 3: Prepare Gemini prompt with context
+            prompt = f"""
+            **Player Analysis Request for {player_name}**
+
+            **Current Market Odds:**
+            {odds_analysis}
+
+            **Analysis Request:**
+            1. Identify the most favorable odds across books
+            2. Compare player's recent performance to the lines, if available
+            3. Highlight any value discrepancies
+            4. Recommend specific bets with confidence levels
+            5. Consider historical trends if available
+            6. If stats are unavailable, estimate  Do not ask for more data.
+
+            **Response Format:**
+            - Summary of key observations
+            - Top betting recommendation
+            - Confidence rating (1-5 stars)
+            - Risk assessment
+            """
+
+            # Step 4: Query Gemini AI
+            response = chat_session.send_message(prompt)
+            print(response)
+
+            # Step 5: Format response for frontend
+            return JsonResponse({
+                'status': 'success',
+                'player': player_name,
+                'player_id': player_id,
+                'best_odds': find_best_odds(data['currentOdds']),
+                'analysis': response.text,
+                'timestamp': datetime.now().isoformat()
+            })
+
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid JSON data'
+            }, status=400)
+
+        except Exception as e:
+            print(f"Error in fetch_player_insights: {str(e)}")
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=500)
+
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Only POST requests are allowed'
+    }, status=405)
+
+
+def find_best_odds(odds_data):
+    """Helper function to identify the best available odds"""
+    best = {
+        'Over': {'price': 0, 'book': None, 'point': None},
+        'Under': {'price': 0, 'book': None, 'point': None}
+    }
+
+    for book, values in odds_data.items():
+        # For Over bets we want highest price (decimal odds)
+        if values['Over']['price'] > best['Over']['price']:
+            best['Over'] = {
+                'price': values['Over']['price'],
+                'book': book,
+                'point': values['Over']['point']
+            }
+
+        # For Under bets we want highest price
+        if values['Under']['price'] > best['Under']['price']:
+            best['Under'] = {
+                'price': values['Under']['price'],
+                'book': book,
+                'point': values['Under']['point']
+            }
+
+    return best
 
 
 def fetch_player_game_stats(player_id):
@@ -201,7 +329,7 @@ chat_session = genai.GenerativeModel("gemini-1.5-flash").start_chat(
                 If the user asks about a specific game, provide the odds and stats for that game. If the user asks about a 
                 specific betting strategy, provide a brief overview. 
                 Assume the user is talking about the most current game first.
-                Assume you are always being asked about the 2024-2025 season.
+                Assume you are always being asked about the current season for the relevant sport.
                 Always keep responses brief, to the point, and aligned with the needs of the user interacting with this app. 
                 If you are unsure about a query or it falls outside this domain, politely suggest the user narrow down their 
                 question to sports betting or this app's features.

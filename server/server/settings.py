@@ -136,7 +136,7 @@ from decouple import config
 
 GEMINI_KEY = config('GEMINI_KEY')
 API_KEY = config('API_KEY')
-
+BALLDONTLIE_API_KEY = config('BALLDONTLIE_API_KEY')
 #SEARCH_API_KEY = config('SEARCH_API_KEY')
 #SEARCH_ENGINE_ID = config('SEARCH_ENGINE_ID')
 
