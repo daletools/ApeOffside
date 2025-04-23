@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from "react";
 import {fetchPlayerPropArbitrage} from "../../../services/api";
 import {getCachedData, setCachedData} from "../../features/cache/useApiCache";
+import './ArbitrageContainer.css';
 
 
 function ArbitrageContainer() {
@@ -24,6 +25,15 @@ function ArbitrageContainer() {
                     side_1: {name: "Over", bookmaker: "FanDuel", price: 2.1},
                     side_2: {name: "Under", bookmaker: "DraftKings", price: 2.2},
                     profit_percent: 7.8,
+                },
+                {
+                    type: "player_points",
+                    event: "Celtics vs Nets",
+                    player: "Jayson Tatum",
+                    line: 27.5,
+                    side_1: {name: "Over", bookmaker: "BetMGM", price: 2.05},
+                    side_2: {name: "Under", bookmaker: "Caesars", price: 2.1},
+                    profit_percent: 7.2,
                 }
             ],
             near_arbitrage: []
@@ -38,6 +48,15 @@ function ArbitrageContainer() {
                     side_1: {name: "Over", bookmaker: "FanDuel", price: 2.24},
                     side_2: {name: "Under", bookmaker: "DraftKings", price: 1.6},
                     profit_percent: 6.9,
+                },
+                {
+                    type: "player_assists",
+                    event: "Knicks vs Hornets",
+                    player: "Jalen Brunson",
+                    line: 6.5,
+                    side_1: {name: "Over", bookmaker: "BetRivers", price: 2.18},
+                    side_2: {name: "Under", bookmaker: "PointsBet", price: 1.65},
+                    profit_percent: 6.4,
                 }
             ],
             near_arbitrage: []
@@ -52,6 +71,15 @@ function ArbitrageContainer() {
                     side_1: {name: "Over", bookmaker: "FanDuel", price: 2.05},
                     side_2: {name: "Under", bookmaker: "DraftKings", price: 2.1},
                     profit_percent: 8.3,
+                },
+                {
+                    type: "player_rebounds",
+                    event: "76ers vs Magic",
+                    player: "Joel Embiid",
+                    line: 10.5,
+                    side_1: {name: "Over", bookmaker: "Bet365", price: 2.15},
+                    side_2: {name: "Under", bookmaker: "Unibet", price: 2.0},
+                    profit_percent: 7.0,
                 }
             ],
             near_arbitrage: []
@@ -66,6 +94,15 @@ function ArbitrageContainer() {
                     side_1: {name: "Over", bookmaker: "FanDuel", price: 2.05},
                     side_2: {name: "Under", bookmaker: "DraftKings", price: 1.75},
                     profit_percent: 6.7,
+                },
+                {
+                    type: "player_threes",
+                    event: "Warriors vs Kings",
+                    player: "Stephen Curry",
+                    line: 5.5,
+                    side_1: {name: "Over", bookmaker: "Betway", price: 2.2},
+                    side_2: {name: "Under", bookmaker: "BetMGM", price: 1.68},
+                    profit_percent: 6.3,
                 }
             ],
             near_arbitrage: []
@@ -80,6 +117,15 @@ function ArbitrageContainer() {
                     side_1: {name: "Over", bookmaker: "FanDuel", price: 2.12},
                     side_2: {name: "Under", bookmaker: "DraftKings", price: 1.72},
                     profit_percent: 6.1,
+                },
+                {
+                    type: "player_steals",
+                    event: "Lakers vs Suns",
+                    player: "Anthony Davis",
+                    line: 1.5,
+                    side_1: {name: "Over", bookmaker: "Caesars", price: 2.1},
+                    side_2: {name: "Under", bookmaker: "Bet365", price: 1.74},
+                    profit_percent: 5.8,
                 }
             ],
             near_arbitrage: []
@@ -94,6 +140,15 @@ function ArbitrageContainer() {
                     side_1: {name: "Over", bookmaker: "FanDuel", price: 2.08},
                     side_2: {name: "Under", bookmaker: "DraftKings", price: 1.74},
                     profit_percent: 5.9,
+                },
+                {
+                    type: "player_blocks",
+                    event: "Pacers vs Bulls",
+                    player: "Myles Turner",
+                    line: 2.0,
+                    side_1: {name: "Over", bookmaker: "BetRivers", price: 2.0},
+                    side_2: {name: "Under", bookmaker: "Caesars", price: 1.78},
+                    profit_percent: 5.6,
                 }
             ],
             near_arbitrage: []
@@ -108,6 +163,15 @@ function ArbitrageContainer() {
                     side_1: {name: "Over", bookmaker: "FanDuel", price: 2.1},
                     side_2: {name: "Under", bookmaker: "DraftKings", price: 1.76},
                     profit_percent: 6.5,
+                },
+                {
+                    type: "player_turnovers",
+                    event: "Heat vs Knicks",
+                    player: "Jimmy Butler",
+                    line: 2.5,
+                    side_1: {name: "Over", bookmaker: "PointsBet", price: 2.0},
+                    side_2: {name: "Under", bookmaker: "BetMGM", price: 1.7},
+                    profit_percent: 6.2,
                 }
             ],
             near_arbitrage: []
@@ -122,10 +186,19 @@ function ArbitrageContainer() {
                     side_1: {name: "Over", bookmaker: "FanDuel", price: 2.2},
                     side_2: {name: "Under", bookmaker: "DraftKings", price: 1.65},
                     profit_percent: 7.1,
+                },
+                {
+                    type: "player_free_throws_made",
+                    event: "Lakers vs Nuggets",
+                    player: "Anthony Davis",
+                    line: 6.0,
+                    side_1: {name: "Over", bookmaker: "Caesars", price: 2.05},
+                    side_2: {name: "Under", bookmaker: "PointsBet", price: 1.72},
+                    profit_percent: 6.8,
                 }
             ],
             near_arbitrage: []
-        },
+        }
     };
 
 
@@ -141,14 +214,14 @@ function ArbitrageContainer() {
 
         //  If we have recent cached data, use it
         if (cached) {
-        //    console.log(`[CACHE] ✅ Returning cached data for "${cacheKey}"`);
+            //    console.log(`[CACHE] ✅ Returning cached data for "${cacheKey}"`);
             setOpportunities(cached);
             setLoading(false);
             return;
         }
 
         //  Otherwise, fetch new data
- //       console.log(`[CACHE] ❌ No cache entry for "${cacheKey}", fetching new data...`);
+        //       console.log(`[CACHE] ❌ No cache entry for "${cacheKey}", fetching new data...`);
         setLoading(true);
         setOpportunities({arbitrage: [], near_arbitrage: []});
 
@@ -159,7 +232,7 @@ function ArbitrageContainer() {
 
                 if (data && typeof data === "object" && Array.isArray(data.arbitrage)) {
                     setOpportunities(data);
-                   // console.log("[DEBUG] Received arbitrage data:", data.arbitrage);
+                    // console.log("[DEBUG] Received arbitrage data:", data.arbitrage);
                     setCachedData(cacheKey, data);
                 } else {
                     console.error("Invalid API response", data);
@@ -235,45 +308,69 @@ function ArbitrageContainer() {
                 <div style={{marginTop: "1rem"}}>
                     <h4>Select Player Stat Market</h4>
                     <button onClick={() => {
-                        setPlayerPropType("player_points");
-                        setUseMock(false);
+                        if (playerPropType !== "player_points") {
+                            setPlayerPropType("player_points");
+                            setUseMock(false);
+                        }
                     }}>Points
                     </button>
+
                     <button onClick={() => {
-                        setPlayerPropType("player_assists");
-                        setUseMock(false);
+                        if (playerPropType !== "player_assists") {
+                            setPlayerPropType("player_assists");
+                            setUseMock(false);
+                        }
                     }}>Assists
                     </button>
+
                     <button onClick={() => {
-                        setPlayerPropType("player_rebounds");
-                        setUseMock(false);
+                        if (playerPropType !== "player_rebounds") {
+                            setPlayerPropType("player_rebounds");
+                            setUseMock(false);
+                        }
                     }}>Rebounds
                     </button>
+
                     <button onClick={() => {
-                        setPlayerPropType("player_threes");
-                        setUseMock(false);
+                        if (playerPropType !== "player_threes") {
+                            setPlayerPropType("player_threes");
+                            setUseMock(false);
+                        }
                     }}>Threes Made
                     </button>
+
                     <button onClick={() => {
-                        setPlayerPropType("player_steals");
-                        setUseMock(false);
+                        if (playerPropType !== "player_steals") {
+                            setPlayerPropType("player_steals");
+                            setUseMock(false);
+                        }
                     }}>Steals
                     </button>
+
                     <button onClick={() => {
-                        setPlayerPropType("player_blocks");
-                        setUseMock(false);
+                        if (playerPropType !== "player_blocks") {
+                            setPlayerPropType("player_blocks");
+                            setUseMock(false);
+                        }
                     }}>Blocks
                     </button>
+
                     <button onClick={() => {
-                        setPlayerPropType("player_turnovers");
-                        setUseMock(false);
+                        if (playerPropType !== "player_turnovers") {
+                            setPlayerPropType("player_turnovers");
+                            setUseMock(false);
+                        }
                     }}>Turnovers
                     </button>
+
                     <button onClick={() => {
-                        setPlayerPropType("player_free_throws_made");
-                        setUseMock(false);
+                        if (playerPropType !== "player_free_throws_made") {
+                            setPlayerPropType("player_free_throws_made");
+                            setUseMock(false);
+                        }
                     }}>FT Made
                     </button>
+
                 </div>
             )}
 
@@ -306,8 +403,37 @@ function ArbitrageContainer() {
                         </div>
                     ) : (
                         <>
-                            {opportunities?.arbitrage?.length > 0 && (
-                                <div>
+                            {/* Show mock data inside its own container */}
+                            {useMock && (
+                                <div className="mock-data-container">
+                                    <h5>🧪 Mock Arbitrage Example</h5>
+                                    <ul className={`arb-list ${useMock ? "mock-data-grid" : ""}`}>
+                                        {opportunities.arbitrage.map((opp, idx) => (
+                                            <li key={`arb-${idx}`} className="arb-opportunity">
+                                                <strong>{opp.type.replace(/_/g, ' ').toUpperCase()}</strong><br/>
+                                                <em>{opp.player || "N/A"} — Line: {opp.line ?? "?"} pts</em><br/>
+                                                {opp.event}<br/>
+                                                {opp.side_1.name} (
+                                                <a href={opp.side_1.site} target="_blank" rel="noopener noreferrer">
+                                                    {opp.side_1.bookmaker}
+                                                </a> @ {opp.side_1.price}
+                                                ) vs{" "}
+                                                {opp.side_2.name} (
+                                                <a href={opp.side_2.site} target="_blank" rel="noopener noreferrer">
+                                                    {opp.side_2.bookmaker}
+                                                </a> @ {opp.side_2.price}
+                                                )
+                                                <br/>
+                                                <strong>Arbitrage: {opp.profit_percent}%</strong>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {/* True Arbitrage Section */}
+                            {!useMock && opportunities?.arbitrage?.length > 0 && (
+                                <div className="true-arbitrage-container">
                                     <h5>🔥 True Arbitrage</h5>
                                     <ul>
                                         {opportunities.arbitrage.map((opp, idx) => (
@@ -334,8 +460,8 @@ function ArbitrageContainer() {
                             )}
 
                             {/* Near-Arbitrage Section */}
-                            {opportunities?.near_arbitrage?.length > 0 && (
-                                <div>
+                            {!useMock && opportunities?.near_arbitrage?.length > 0 && (
+                                <div className="near-arbitrage-container">
                                     <h5> Near-Arbitrage Opportunities</h5>
                                     <ul>
                                         {opportunities.near_arbitrage.map((opp, idx) => (
@@ -358,25 +484,20 @@ function ArbitrageContainer() {
                                                     Combined Implied Probability: {opp.implied_total.toFixed(3)}
                                                 </strong><br/>
                                                 <span style={{fontStyle: "italic", color: "#777"}}>
-                        Edge: {(100 - opp.implied_total * 100).toFixed(2)}%
-                    </span>
+                                                Edge: {(100 - opp.implied_total * 100).toFixed(2)}%
+                                            </span>
                                             </li>
                                         ))}
                                     </ul>
-
-                                    <div style={{marginTop: "1rem"}}>
-                                        <button onClick={handleMockLoad}>Show Example with Mock Data</button>
-                                    </div>
                                 </div>
                             )}
-
-
                         </>
                     )}
                 </div>
             )}
         </div>
     );
+
 }
 
 export default ArbitrageContainer;

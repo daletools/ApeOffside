@@ -1,0 +1,111 @@
+/* Container for the mock data alert/banner */
+.mock-data-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #036704; 
+    text-align: center;
+    padding: 2rem;
+    border-radius: 10px;
+    margin: 2rem auto;
+    max-width: 900px;
+}
+
+/* List container for mock cards */
+.mock-data-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    justify-content: center;
+    padding: 0;
+    list-style: none;
+    margin-top: 1rem;
+}
+
+/* Shared card style for arbitrage opportunities */
+.arb-opportunity {
+    background-color: white;
+    color: black;
+    padding: 1.25rem 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 360px;
+    flex-shrink: 0;
+    text-align: left;
+    font-size: 1.05rem;
+    line-height: 1.6;
+}
+
+/* Extra size/treatment for mock items */
+.mock-data-grid .arb-opportunity {
+    width: 360px;
+}
+
+/* Optional light style for near arbitrage */
+.near.arb-opportunity {
+    background-color: #f0f0f0;
+    border: 1px solid #bbb;
+    opacity: 0.9;
+}
+
+/* Containers for true and near arbitrage sections */
+.true-arbitrage-container,
+.near-arbitrage-container {
+    background-color: #f5f5f5;
+    border: 2px solid #ddd;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1.5rem auto;
+    max-width: 900px;
+}
+
+/* Typography inside cards */
+.arb-opportunity strong {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.arb-opportunity em {
+    font-style: italic;
+    font-size: 0.95rem;
+    color: #444;
+}
+
+.arb-opportunity a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+.arb-opportunity a:hover {
+    text-decoration: underline;
+}
+
+/* Style <ul> resets */
+.mock-data-results ul,
+.arb-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 600px) {
+    .mock-data-grid {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+.mock-data-container h5,
+.true-arbitrage-container h5,
+.near-arbitrage-container h5 {
+    font-size: 1.6rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: #ffffff; /* white for mock, adjust per container bg */
+}
+
+.true-arbitrage-container h5,
+.near-arbitrage-container h5 {
+    color: #333; /* darker text for light backgrounds */
+}
