@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import PlayerBlock from "../../features/PlayerBlock.jsx";
 import { fetchCurrentGames, fetchGameOdds } from "../../../services/api.jsx";
 import useWindowSize from '../../../hooks/useWindowSize';
+import Gemini from "../../features/Gemini.jsx";
+import GameCard from "./GameCard.jsx";
 
 function PropBetContainer() {
     const [games, setGames] = useState([]);
@@ -12,6 +14,7 @@ function PropBetContainer() {
     const [error, setError] = useState(null);
     const [oddsLoading, setOddsLoading] = useState(false);
     const [oddsError, setOddsError] = useState(null);
+    const [selectedPlayerData, setSelectedPlayerData] = useState(null);
     const { width } = useWindowSize();
 
     const getColumns = () => {
@@ -80,6 +83,10 @@ function PropBetContainer() {
                 ? prev.filter(name => name !== playerName)
                 : [...prev, playerName]
         );
+    };
+
+    const handleGetInsights = (playerData) => {
+        setSelectedPlayerData(playerData);
     };
 
     return (
@@ -209,6 +216,7 @@ function PropBetContainer() {
                                                 playerName={player}
                                                 playerData={data?.data?.player[player]}
                                                 onRemove={() => togglePlayerTracking(player)}
+                                                onGetInsights={handleGetInsights}
                                             />
                                         ))}
                                     </div>
@@ -228,39 +236,11 @@ function PropBetContainer() {
                     )}
                 </div>
             )}
+
+            {/* Render Gemini chatbot with selected player data */}
+            {selectedPlayerData && <Gemini data={selectedPlayerData} />}
         </div>
     );
 }
-
-const GameCard = ({ game, isSelected, onClick }) => (
-    <div
-        style={{
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            padding: '15px',
-            cursor: 'pointer',
-            backgroundColor: isSelected ? 'lightgreen' : 'darkgray',
-            transition: 'all 0.2s',
-            ':hover': {
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-            }
-        }}
-        onClick={onClick}
-    >
-        <p style={{ fontWeight: 'bold', margin: '0 0 5px 0' }}>
-            {game.home_team} vs {game.away_team}
-        </p>
-        <p style={{ color: '#666', fontSize: '0.9em', margin: 0 }}>
-            {new Date(game.commence_time).toLocaleString(undefined, {
-                timeZoneName: 'short',
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit'
-            })}
-        </p>
-    </div>
-);
 
 export default PropBetContainer;
