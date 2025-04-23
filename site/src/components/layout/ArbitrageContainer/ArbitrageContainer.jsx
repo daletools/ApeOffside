@@ -392,9 +392,10 @@ function ArbitrageContainer() {
                         )}
                     {/*  Show loading indicator */}
                     {loading && (
-                        <p style={{fontStyle: "italic", color: "#555"}}>
-                            ⏳ Loading opportunities, please wait...
-                        </p>
+                        <div className="spinner-container">
+                            <div className="spinner"></div>
+                            <p>Loading opportunities...</p>
+                        </div>
                     )}
                     {(opportunities?.arbitrage?.length === 0 && opportunities?.near_arbitrage?.length === 0) ? (
 
