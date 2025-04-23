@@ -9,6 +9,7 @@ const Gemini = (data) => {
     const [prompts, setPrompts] = useState([]); // State for premade prompts
     const [isLoading, setIsLoading] = useState(false); // State for loading indicator
     const messagesEndRef = useRef(null);
+    const textareaRef = useRef(null); // Ref for the textarea element
 
     useEffect(() => {
         console.log("Gemini received:", data);
@@ -34,6 +35,14 @@ const Gemini = (data) => {
             messagesEndRef.current.scrollIntoView({behavior: "smooth"});
         }
     }, [messages]);
+
+    // Initialize textarea height when chat is opened
+    useEffect(() => {
+        if (isChatOpen && textareaRef.current) {
+            // Reset to default height
+            textareaRef.current.style.height = 'auto';
+        }
+    }, [isChatOpen]);
 
     // Fetch prompts when chat is opened
     useEffect(() => {
@@ -113,6 +122,23 @@ const Gemini = (data) => {
         }
     };
 
+    // Function to auto-resize the textarea
+    const autoResizeTextarea = () => {
+        if (textareaRef.current) {
+            // Reset height to auto to get the correct scrollHeight
+            textareaRef.current.style.height = 'auto';
+            // Set the height to the scrollHeight to expand the textarea
+            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+        }
+    };
+
+    // Handle input change and auto-resize
+    const handleInputChange = (e) => {
+        setInput(e.target.value);
+        // Call auto-resize after state update
+        setTimeout(autoResizeTextarea, 0);
+    };
+
     const handleSendMessage = async (event) => {
         event.preventDefault();
         if (input.trim() === "") return;
@@ -120,6 +146,10 @@ const Gemini = (data) => {
         const userMessage = input.trim();
         setMessages((prev) => [...prev, {sender: "user", text: userMessage}]);
         setInput("");
+        // Reset textarea height
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+        }
         setIsLoading(true);
 
         try {
@@ -248,13 +278,14 @@ const Gemini = (data) => {
                         <div ref={messagesEndRef}></div>
                     </div>
                     <form className="chat-form" onSubmit={handleSendMessage}>
-                        <input
-                            type="text"
+                        <textarea
+                            ref={textareaRef}
                             className="chat-input"
                             value={input}
-                            onChange={(e) => setInput(e.target.value)}
+                            onChange={handleInputChange}
                             placeholder="Type your message..."
                             disabled={isLoading}
+                            rows="1"
                         />
                         <button type="submit" className="send-button" disabled={isLoading}>
                             Send
