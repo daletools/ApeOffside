@@ -75,7 +75,6 @@ const PlayerBlock = ({ playerName, playerData, onRemove, onGetInsights }) => {
         requestRef.current = true;
 
         const insightsData = {
-            type: 'player_analysis_request',
             playerName,
             currentOdds: displayData,  // Still use displayData for currentOdds
             gameContext: playerData?.gameMetadata || null,  // Safely access gameMetadata from playerData
