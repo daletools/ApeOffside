@@ -9,6 +9,12 @@ from django.conf import settings
 from server.settings import GEMINI_KEY, BALLDONTLIE_API_KEY
 import re
 from datetime import datetime
+from nba_api.stats.endpoints import (
+    playercareerstats,
+    playergamelog
+)
+from nba_api.stats.static import players
+import pandas as pd
 
 from balldontlie import BalldontlieAPI
 
@@ -69,88 +75,88 @@ def fetch_player_insights(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            print("Received betting data")
-
-            if not data.get('playerName') or not data.get('currentOdds'):
-                return JsonResponse({
-                    'status': 'error',
-                    'message': 'Missing playerName or currentOdds in request'
-                }, status=400)
-
-            # Step 1: Fetch player stats from balldontlie API
             player_name = data['playerName']
-            first, last = player_name.split(' ', 1)
-            players = api.nba.players.list(first_name=first, last_name=last).data
+            current_odds = data['currentOdds']
+            game_context = data['gameContext']
 
+            # Step 1: Get player stats from NBA API
+            from nba_api.stats.static import players
+            from nba_api.stats.endpoints import playergamelog, commonplayerinfo
 
-            if not players:
+            # Find player ID
+            nba_player = players.find_players_by_full_name(player_name)
+            if not nba_player:
                 return JsonResponse({
                     'status': 'error',
-                    'message': f'Player {player_name} not found'
+                    'message': f'Player {player_name} not found in NBA database'
                 }, status=404)
 
-            player = players[0]
-            print(f"Found player: {player.first_name} {player.last_name}")
+            player_id = nba_player[0]['id']
 
-            player_id = player.id
-            # player_stats = fetch_player_stats(player_id)
-            #
-            # if not player_stats:
-            #     return JsonResponse({
-            #         'status': 'error',
-            #         'message': 'Failed to fetch player stats'
-            #     }, status=500)
+            # Get player info and recent games
+            player_info = commonplayerinfo.CommonPlayerInfo(player_id=player_id)
+            game_log = playergamelog.PlayerGameLog(
+                player_id=player_id,
+                season='2024-25'  # Update with current season
+            )
 
-            # Step 2: Prepare odds analysis
-            def format_odds(bookmaker):
-                return (
-                    f"• {bookmaker}: Over {data['currentOdds'][bookmaker]['Over']['point']} @ {data['currentOdds'][bookmaker]['Over']['price']} "
-                    f"| Under @ {data['currentOdds'][bookmaker]['Under']['price']}"
-                )
+            # Extract relevant stats
+            info_data = player_info.get_normalized_dict()
+            stats_data = game_log.get_normalized_dict()['PlayerGameLog'][:5]  # Last 5 games
 
-            odds_analysis = "\n".join([format_odds(book) for book in data['currentOdds']])
-
-            # Step 3: Prepare Gemini prompt with context
+            # Step 2: Prepare Gemini prompt
             prompt = f"""
-            **Player Analysis Request for {player_name}**
+            **Advanced Player Betting Analysis**
+            You must give an analysis of the best Over/Under bets from those provided.
 
-            **Current Market Odds:**
-            {odds_analysis}
+            === Game Context ===
+            {game_context['homeTeam']} vs {game_context['awayTeam']}
+            Time: {game_context['gameTime']}
 
-            **Analysis Request:**
-            1. Identify the most favorable odds across books
-            2. Compare player's recent performance to the lines, if available
-            3. Highlight any value discrepancies
-            4. Recommend specific bets with confidence levels
-            5. Consider historical trends if available
-            6. If stats are unavailable, estimate  Do not ask for more data.
+            === Player Profile ===
+            Name: {player_name}
+            Position: {info_data['CommonPlayerInfo'][0]['POSITION']}
+            Team: {info_data['CommonPlayerInfo'][0]['TEAM_NAME']}
+
+            === Recent Performance (Last 5 Games) ===
+            {format_game_log(stats_data)}
+
+            === Current Betting Odds ===
+            {format_odds(current_odds)}
+
+            === Analysis Tasks ===
+            1. Evaluate matchup considering player position vs opponent defense
+            2. Compare recent performance to betting lines
+            3. Identify best value across books
+            4. Provide 3 specific recommendations with confidence levels
+            5. Highlight any injury/rotation risks
 
             **Response Format:**
             - Summary of key observations
-            - Top betting recommendation
-            - Confidence rating (1-5 stars)
+            - Top betting recommendations
+            - Confidence ratings (1-5 stars)
             - Risk assessment
             """
 
-            # Step 4: Query Gemini AI
+            # Step 3: Query Gemini
             response = chat_session.send_message(prompt)
-            print(response)
+            analysis_text = response.text
 
-            # Step 5: Format response for frontend
+            # Step 4: Format response
             return JsonResponse({
                 'status': 'success',
                 'player': player_name,
-                'player_id': player_id,
-                'best_odds': find_best_odds(data['currentOdds']),
-                'analysis': response.text,
+                'player_info': {
+                    'position': info_data['CommonPlayerInfo'][0]['POSITION'],
+                    'team': info_data['CommonPlayerInfo'][0]['TEAM_NAME'],
+                    'height': info_data['CommonPlayerInfo'][0]['HEIGHT'],
+                    'weight': info_data['CommonPlayerInfo'][0]['WEIGHT']
+                },
+                'recent_games': stats_data,
+                'best_odds': find_best_odds(current_odds),
+                'analysis': analysis_text,
                 'timestamp': datetime.now().isoformat()
             })
-
-        except json.JSONDecodeError:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Invalid JSON data'
-            }, status=400)
 
         except Exception as e:
             print(f"Error in fetch_player_insights: {str(e)}")
@@ -164,6 +170,20 @@ def fetch_player_insights(request):
         'message': 'Only POST requests are allowed'
     }, status=405)
 
+# Helper function to format odds
+def format_odds(odds_data):
+    return "\n".join(
+        f"{bookmaker}: Over {values['Over']['point']} @ {values['Over']['price']} | "
+        f"Under @ {values['Under']['price']}"
+        for bookmaker, values in odds_data.items()
+    )
+
+def format_game_log(games):
+    return "\n".join(
+        f"{game['GAME_DATE']}: {game['PTS']} PTS, {game['AST']} AST, {game['REB']} REB, "
+        f"{game['FG_PCT'] * 100:.1f}% FG"
+        for game in games
+    )
 
 def find_best_odds(odds_data):
     """Helper function to identify the best available odds"""

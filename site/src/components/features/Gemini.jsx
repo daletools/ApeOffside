@@ -1,67 +1,69 @@
-import {useState, useEffect, useRef, useImperativeHandle, forwardRef} from "react";
-import {fetchChatResponse, fetchInsightsAPI} from "../../services/api.jsx";
+import React, {
+    useState,
+    useRef,
+    forwardRef,
+    useImperativeHandle,
+    useEffect
+} from 'react';
+import { fetchChatResponse, fetchInsightsAPI } from "../../services/api.jsx";
 import "../../Gemini.css";
 
-const Gemini = (data) => {
+const Gemini = forwardRef((props, ref) => {
     const [messages, setMessages] = useState([]);
-    const [input, setInput] = useState(""); // State for user input
-    const [isChatOpen, setIsChatOpen] = useState(false); // State to toggle chat visibility
-    const [prompts, setPrompts] = useState([]); // State for premade prompts
-    const [isLoading, setIsLoading] = useState(false); // State for loading indicator
+    const [input, setInput] = useState("");
+    const [isChatOpen, setIsChatOpen] = useState(false);
+    const [prompts, setPrompts] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
 
-    useEffect(() => {
-        console.log("Gemini received:", data);
-        if (!data) return;
+    // Function exposed to parent component via ref
+    const analyzePlayer = async (playerData) => {
+        if (!playerData) return;
 
-        let analysis = data.data || {};
+        // Add user message to chat
+        setMessages(prev => [...prev, {
+            sender: 'user',
+            text: `I'd like insights on ${playerData.playerName}'s odds for this game.`,
+            timestamp: new Date()
+        }]);
 
-        if (analysis.type === 'player_analysis_request') {
-            console.log('Received analysis request', analysis);
+        setIsChatOpen(true);
+        setIsLoading(true);
 
-            let response = analysis;
+        try {
+            const response = await fetchInsightsAPI(playerData);
+            const analysisText = response.data?.analysis ||
+                response.analysis ||
+                "No analysis available";
 
             setMessages(prev => [...prev, {
-                sender: 'user',
-                text: `I'd like insights on ${response.playerName}'s odds for this game.`,
+                sender: 'bot',
+                text: analysisText,
                 timestamp: new Date()
             }]);
-            setIsChatOpen(true);
-            handlePlayerInsights(response);
+        } catch (error) {
+            console.error("Error fetching insights:", error);
+            setMessages(prev => [...prev, {
+                sender: 'bot',
+                text: "Sorry, I couldn't analyze those odds. Please try again later.",
+                timestamp: new Date()
+            }]);
+        } finally {
+            setIsLoading(false);
         }
-    }, [data]);
+    };
 
+    // Make analyzePlayer available to parent component
+    useImperativeHandle(ref, () => ({
+        analyzePlayer
+    }));
+
+    // Auto-scroll to bottom when messages change
     useEffect(() => {
         if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({behavior: "smooth"});
+            messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
         }
     }, [messages]);
-
-    // Fetch prompts when chat is opened
-    useEffect(() => {
-        const fetchPrompts = async () => {
-            if (isChatOpen && messages.length === 0) {
-                setIsLoading(true);
-                try {
-                    // Fetch initial greeting and prompts
-                    const response = await fetchChatResponse('', '');
-                    if (response.prompts) {
-                        setPrompts(response.prompts);
-                    }
-                    if (response.response) {
-                        setMessages([{sender: "bot", text: response.response}]);
-                    }
-                } catch (error) {
-                    console.error("Error fetching prompts:", error);
-                    setMessages([{sender: "bot", text: "Welcome! How can I help you today?"}]);
-                } finally {
-                    setIsLoading(false);
-                }
-            }
-        };
-
-        fetchPrompts();
-    }, [isChatOpen]);
 
     // Handle prompt selection
     const handlePromptSelect = async (promptType) => {
@@ -70,120 +72,90 @@ const Gemini = (data) => {
         // Find the prompt text to display in the chat
         const selectedPrompt = prompts.find(p => p.id === promptType);
         if (selectedPrompt) {
-            setMessages(prev => [...prev, {sender: "user", text: selectedPrompt.text}]);
+            setMessages(prev => [...prev, { sender: "user", text: selectedPrompt.text }]);
         }
 
         try {
             const response = await fetchChatResponse('', promptType);
 
-            // Check if response contains new prompts (for nested prompts)
             if (response.prompts) {
                 setPrompts(response.prompts);
-                setMessages(prev => [...prev, {sender: "bot", text: response.response}]);
+                setMessages(prev => [...prev, { sender: "bot", text: response.response }]);
             } else if (response.data) {
-                // For responses with HTML data (like tables)
                 setMessages(prev => [...prev, {
-                    sender: "bot", 
+                    sender: "bot",
                     text: response.response + (response.data ? response.data : '')
                 }]);
-                // Clear prompts after selection
                 setPrompts([]);
             } else if (response.info) {
-                // For responses with additional info
                 setMessages(prev => [
-                    ...prev, 
-                    {sender: "bot", text: response.response},
-                    {sender: "bot", text: response.info}
+                    ...prev,
+                    { sender: "bot", text: response.response },
+                    { sender: "bot", text: response.info }
                 ]);
-                // Clear prompts after selection
                 setPrompts([]);
             } else {
-                // Standard text response
-                setMessages(prev => [...prev, {sender: "bot", text: response.response}]);
-                // Clear prompts after selection
+                setMessages(prev => [...prev, { sender: "bot", text: response.response }]);
                 setPrompts([]);
             }
         } catch (error) {
             setMessages(prev => [
                 ...prev,
-                {sender: "bot", text: "An error occurred while processing your request."}
+                { sender: "bot", text: "An error occurred while processing your request." }
             ]);
-            // Clear prompts on error
             setPrompts([]);
         } finally {
             setIsLoading(false);
         }
     };
 
+    // Handle regular message submission
     const handleSendMessage = async (event) => {
         event.preventDefault();
         if (input.trim() === "") return;
 
         const userMessage = input.trim();
-        setMessages((prev) => [...prev, {sender: "user", text: userMessage}]);
+        setMessages((prev) => [...prev, { sender: "user", text: userMessage }]);
         setInput("");
         setIsLoading(true);
 
         try {
             const response = await fetchChatResponse(userMessage);
 
-            // Check if response contains new prompts
             if (response.prompts) {
                 setPrompts(response.prompts);
-                setMessages(prev => [...prev, {sender: "bot", text: response.response}]);
+                setMessages(prev => [...prev, { sender: "bot", text: response.response }]);
             } else if (response.data) {
-                // For responses with HTML data (like tables)
                 setMessages(prev => [...prev, {
-                    sender: "bot", 
+                    sender: "bot",
                     text: response.response + (response.data ? response.data : '')
                 }]);
-                // Clear prompts after selection
                 setPrompts([]);
             } else if (Array.isArray(response.response)) {
                 const formattedResponse = response.response.map((item, index) => (
                     `${index + 1}. ${item.home_team} vs ${item.away_team} - Odds: ${JSON.stringify(item.odds)}`
                 )).join("\n");
-                setMessages((prev) => [...prev, {sender: "bot", text: formattedResponse}]);
-                // Clear prompts after response
+                setMessages((prev) => [...prev, { sender: "bot", text: formattedResponse }]);
                 setPrompts([]);
             } else if (typeof response.response === "object") {
                 setMessages((prev) => [
                     ...prev,
-                    {sender: "bot", text: "Here are the details:"},
-                    {sender: "bot", text: JSON.stringify(response.response, null, 2)},
+                    { sender: "bot", text: "Here are the details:" },
+                    { sender: "bot", text: JSON.stringify(response.response, null, 2) },
                 ]);
-                // Clear prompts after response
                 setPrompts([]);
             } else {
-                setMessages((prev) => [...prev, {sender: "bot", text: response.response}]);
-                // Clear prompts after response
+                setMessages((prev) => [...prev, { sender: "bot", text: response.response }]);
                 setPrompts([]);
             }
         } catch (error) {
             setMessages((prev) => [
                 ...prev,
-                {sender: "bot", text: "An error occurred while fetching the response."},
+                { sender: "bot", text: "An error occurred while fetching the response." },
             ]);
-            // Clear prompts on error
             setPrompts([]);
         } finally {
             setIsLoading(false);
-        }
-    };
-
-    const handlePlayerInsights = async (data) => {
-        try {
-            const response = await fetchInsightsAPI(data)
-
-            setMessages(prev => [...prev, {
-                sender: 'bot',
-                text: response
-            }]);
-        } catch (error) {
-            setMessages((prev) => [
-                ...prev,
-                {sender: "bot", text: "An error occurred while fetching the response."},
-            ]);
         }
     };
 
@@ -218,7 +190,7 @@ const Gemini = (data) => {
                             <div key={idx} className={msg.sender === "user" ? "user-message" : "bot-message"}>
                                 <strong>{msg.sender === "user" ? "You: " : "Bot: "}</strong>
                                 {msg.sender === "bot" && (msg.text.includes("<") && msg.text.includes(">"))
-                                    ? <div dangerouslySetInnerHTML={{__html: msg.text}}/>
+                                    ? <div dangerouslySetInnerHTML={{ __html: msg.text }}/>
                                     : msg.text}
                             </div>
                         ))}
@@ -232,7 +204,7 @@ const Gemini = (data) => {
                             </div>
                         )}
 
-                        {/* Premade prompts - show whenever available */}
+                        {/* Premade prompts */}
                         {prompts.length > 0 && (
                             <div className="prompt-buttons">
                                 <p><strong>Quick options:</strong></p>
@@ -268,6 +240,6 @@ const Gemini = (data) => {
             )}
         </>
     );
-};
+});
 
 export default Gemini;
