@@ -532,6 +532,23 @@ function ArbitrageContainer() {
                             </ul>
                         </div>
                     )}
+                    {/* Fallback if no true arbitrage */}
+                    {!useMock && opportunities?.arbitrage?.length === 0 && !loading && (
+                        <div style={{
+                            marginTop: "2rem",
+                            padding: "1rem",
+                            textAlign: "center",
+                            backgroundColor: "#ffecec",
+                            color: "#cc0000",
+                            borderRadius: "8px",
+                            maxWidth: "600px",
+                            marginLeft: "auto",
+                            marginRight: "auto"
+                        }}>
+                            <strong>🚫 No True Arbitrage Opportunities Found</strong><br/>
+                            Try a different stat or check back later — odds are always changing!
+                        </div>
+                    )}
 
 
                     {/* Near-arbitrage */}
