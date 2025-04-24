@@ -4,11 +4,11 @@
     position: fixed;
     bottom: 20px;
     right: 20px;
-    width: 350px;
-    max-height: 500px;
+    width: 437.5px;
+    max-height: 730px;
     background: #1e1e2f;
-    border-radius: 15px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border-radius: 18px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -19,14 +19,14 @@
 .chat-header {
     background-color: #4caf50;
     color: white;
-    padding: 10px 15px;
+    padding: 12px 19px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 16px;
+    font-size: 20px;
     font-weight: bold;
     border-bottom: 1px solid #333;
-    border-radius: 15px 15px 0 0;
+    border-radius: 18px 18px 0 0;
 }
 
 /* Close Button */
@@ -34,7 +34,7 @@
     background: none;
     border: none;
     color: white;
-    font-size: 18px;
+    font-size: 22px;
     cursor: pointer;
     transition: color 0.3s ease;
 }
@@ -79,11 +79,14 @@
     align-self: flex-end;
     background-color: #4caf50;
     color: white;
-    padding: 8px 12px;
-    border-radius: 15px 15px 0 15px;
+    padding: 10px 15px;
+    border-radius: 18px 18px 0 18px;
     max-width: 80%;
     word-wrap: break-word;
-    font-size: 14px;
+    overflow-wrap: break-word;
+    white-space: normal;
+    height: auto;
+    font-size: 17px;
 }
 
 /* Bot Message */
@@ -91,48 +94,58 @@
     align-self: flex-start;
     background-color: #333;
     color: white;
-    padding: 8px 12px;
-    border-radius: 15px 15px 15px 0;
+    padding: 10px 15px;
+    border-radius: 18px 18px 18px 0;
     max-width: 80%;
     word-wrap: break-word;
-    font-size: 14px;
+    overflow-wrap: break-word;
+    white-space: normal;
+    height: auto;
+    font-size: 17px;
 }
 
 
 /* Chat Input Form */
 .chat-form {
     display: flex;
-    padding: 10px;
+    padding: 12px;
     background-color: #1e1e2f;
     border-top: 1px solid #333;
-    border-radius: 0 0 15px 15px;
+    border-radius: 0 0 18px 18px;
 }
 
 /* Input Field */
 .chat-input {
     flex: 1;
-    padding: 10px;
+    padding: 12px;
     border: none;
-    border-radius: 20px;
+    border-radius: 25px;
     background-color: #2c2c3d;
     color: white;
     outline: none;
-    font-size: 14px;
-    height: 40px;
+    font-size: 17px;
+    min-height: 50px;
+    max-height: 150px;
+    resize: none;
+    overflow-y: auto;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    line-height: 1.5;
 }
 
 /* Send Button */
 .send-button {
-    padding: 10px 16px;
+    padding: 12px 20px;
     border: none;
-    border-radius: 20px;
+    border-radius: 25px;
     background-color: #4caf50;
     color: white;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 17px;
     transition: background-color 0.3s ease;
-    height: 40px;
-    margin-left: 10px;
+    height: 50px;
+    margin-left: 12px;
 }
 
 .send-button:hover {
@@ -144,17 +157,17 @@
     position: fixed;
     bottom: 20px;
     right: 20px;
-    width: 60px;
-    height: 60px;
+    width: 75px;
+    height: 75px;
     background: radial-gradient(circle, #673ab7 20%, #4dc50c 70%, #07e310 100%);
     color: white;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
     cursor: pointer;
-    font-size: 28px;
+    font-size: 25px;
     transition: all 0.3s ease;
     border: none;
 }
@@ -169,13 +182,13 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
 }
 
 .loading-dots span {
     display: inline-block;
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
     background-color: #fff;
     border-radius: 50%;
     animation: bounce 1.4s infinite ease-in-out both;
@@ -202,16 +215,16 @@
 .prompt-buttons {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin: 10px 0;
+    gap: 10px;
+    margin: 12px 0;
     align-self: center;
     width: 100%;
 }
 
 .prompt-buttons p {
-    margin: 0 0 8px 0;
+    margin: 0 0 10px 0;
     color: #ccc;
-    font-size: 14px;
+    font-size: 17px;
     text-align: center;
 }
 
@@ -219,9 +232,9 @@
     background-color: #3a3a4e;
     color: white;
     border: 1px solid #4caf50;
-    border-radius: 20px;
-    padding: 8px 16px;
-    font-size: 14px;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-size: 17px;
     cursor: pointer;
     transition: all 0.3s ease;
     width: 100%;

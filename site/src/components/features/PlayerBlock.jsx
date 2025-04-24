@@ -1,9 +1,19 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { FaTimes, FaChartLine, FaExternalLinkAlt } from 'react-icons/fa';
 
 const PlayerBlock = ({ playerName, playerData, onRemove, onGetInsights }) => {
+    // State for historical data and trends
     const [historicalData, setHistoricalData] = useState([]);
     const [showTrends, setShowTrends] = useState(false);
+    const [isFetchingInsights, setIsFetchingInsights] = useState(false);
+    const requestRef = useRef(null);
+
+    // Clean player data for display (excludes gameMetadata)
+    const displayData = useMemo(() => {
+        if (!playerData) return null;
+        const { gameMetadata, ...cleanData } = playerData;
+        return cleanData;
+    }, [playerData]);
 
     // Update historical data when new props arrive
     useEffect(() => {
@@ -11,12 +21,12 @@ const PlayerBlock = ({ playerName, playerData, onRemove, onGetInsights }) => {
             setHistoricalData(prev => {
                 const newData = {
                     timestamp: new Date().toISOString(),
-                    data: playerData
+                    data: displayData
                 };
-                return [...prev, newData].slice(-10); // Keep the last 10 entries
+                return [...prev, newData].slice(-10); // Keep last 10 entries
             });
         }
-    }, [playerData]);
+    }, [playerData, displayData]);
 
     // Memoized trend calculations
     const trends = useMemo(() => {
@@ -35,6 +45,7 @@ const PlayerBlock = ({ playerName, playerData, onRemove, onGetInsights }) => {
         return calculatedTrends;
     }, [historicalData]);
 
+    // Calculate price trends
     const calculatePriceTrend = (history, bookmaker, type) => {
         const prices = history.map(entry =>
             entry.data[bookmaker]?.[type]?.price || null
@@ -56,21 +67,44 @@ const PlayerBlock = ({ playerName, playerData, onRemove, onGetInsights }) => {
         };
     };
 
-    const handleGetInsights = () => {
+    // Latching mechanism for insights requests
+    const handleGetInsights = useCallback(() => {
+        if (isFetchingInsights || requestRef.current) return;
+
+        setIsFetchingInsights(true);
+        requestRef.current = true;
+
         const insightsData = {
             playerName,
-            currentOdds: playerData,
+            currentOdds: displayData,  // Still use displayData for currentOdds
+            gameContext: playerData?.gameMetadata || null,  // Safely access gameMetadata from playerData
             historicalData,
             trends
         };
-        if (typeof onGetInsights === 'function') {
-            onGetInsights(insightsData);
-            console.log("Data ready for AI chatbot:", insightsData);
-        } else {
-            console.error("onGetInsights is not a function");
-        }
-    };
 
+        const cleanup = () => {
+            requestRef.current = null;
+            setIsFetchingInsights(false);
+        };
+
+        try {
+            onGetInsights?.(insightsData);
+        } catch (error) {
+            console.error("Insights error:", error);
+        } finally {
+            // Minimum loading state of 500ms for better UX
+            setTimeout(cleanup, 500);
+        }
+    }, [isFetchingInsights, playerName, displayData, playerData, historicalData, trends, onGetInsights]);
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            requestRef.current = null;
+        };
+    }, []);
+
+    // Render trend indicator
     const renderTrendIndicator = (trend) => {
         if (!trend) return null;
 
@@ -88,6 +122,7 @@ const PlayerBlock = ({ playerName, playerData, onRemove, onGetInsights }) => {
         );
     };
 
+    // Render odds value with link
     const renderOddsValue = (value, link, type) => {
         const baseStyle = {
             fontWeight: '500',
@@ -106,8 +141,8 @@ const PlayerBlock = ({ playerName, playerData, onRemove, onGetInsights }) => {
                 rel="noopener noreferrer"
                 style={{
                     ...baseStyle,
-                    backgroundColor: '#f0f7ff',  // Light blue background
-                    color: '#0066cc',             // Darker blue text
+                    backgroundColor: '#f0f7ff',
+                    color: '#0066cc',
                     textDecoration: 'none',
                     border: '1px solid #cce0ff',
                     transition: 'all 0.2s',
@@ -115,10 +150,10 @@ const PlayerBlock = ({ playerName, playerData, onRemove, onGetInsights }) => {
                 aria-label={`Bet ${type} on ${playerName}`}
             >
                 {value?.toFixed(2) || '-'}
+                <FaExternalLinkAlt style={{ marginLeft: '3px', fontSize: '0.7em' }} />
             </a>
         );
     };
-
 
     return (
         <div style={{
@@ -167,75 +202,97 @@ const PlayerBlock = ({ playerName, playerData, onRemove, onGetInsights }) => {
                 </button>
             </div>
 
-            {/* Odds by bookmaker */}
-            <div style={{ marginTop: '10px' }}>
-                {playerData && Object.entries(playerData).map(([bookmaker, odds]) => (
-                    <div key={bookmaker} style={{
-                        marginBottom: '15px',
-                        paddingBottom: '15px',
-                        borderBottom: '1px solid #f5f5f5'
-                    }}>
-                        {bookmaker}
-                        <div style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            marginBottom: '5px',
-                            gap: '10px'
+            {/* Odds by bookmaker - using displayData */}
+            {displayData && (
+                <div style={{ marginTop: '10px' }}>
+                    {Object.entries(displayData).map(([bookmaker, odds]) => (
+                        <div key={bookmaker} style={{
+                            marginBottom: '15px',
+                            paddingBottom: '15px',
+                            borderBottom: '1px solid #f5f5f5'
                         }}>
-                            <div style={{ flex: 1 }}>
-                                <span style={{ fontWeight: '500' }}>Over: </span>
-                                {renderOddsValue(odds.Over?.price, odds.Over?.link, 'Over')}
-                                {showTrends && renderTrendIndicator(trends?.[bookmaker]?.over)}
+                            {bookmaker}
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                marginBottom: '5px',
+                                gap: '10px'
+                            }}>
+                                <div style={{ flex: 1 }}>
+                                    <span style={{ fontWeight: '500' }}>Over: </span>
+                                    {renderOddsValue(odds.Over?.price, odds.Over?.link, 'Over')}
+                                    {showTrends && renderTrendIndicator(trends?.[bookmaker]?.over)}
+                                </div>
+                                <div style={{ flex: 1, textAlign: 'right' }}>
+                                    <span style={{ fontWeight: '500' }}>Under: </span>
+                                    {renderOddsValue(odds.Under?.price, odds.Under?.link, 'Under')}
+                                    {showTrends && renderTrendIndicator(trends?.[bookmaker]?.under)}
+                                </div>
                             </div>
-                            <div style={{ flex: 1, textAlign: 'right' }}>
-                                <span style={{ fontWeight: '500' }}>Under: </span>
-                                {renderOddsValue(odds.Under?.price, odds.Under?.link, 'Under')}
-                                {showTrends && renderTrendIndicator(trends?.[bookmaker]?.under)}
+
+                            <div style={{
+                                textAlign: 'center',
+                                margin: '8px 0 4px',
+                                padding: '4px',
+                                backgroundColor: '#f8f9fa',
+                                borderRadius: '4px',
+                                fontSize: '0.9em'
+                            }}>
+                                <span style={{ fontWeight: '500' }}>Line: </span>
+                                <span style={{ fontFamily: 'monospace' }}>
+                                    {odds.Over?.point || odds.Under?.point || '-'}
+                                </span>
                             </div>
                         </div>
+                    ))}
+                </div>
+            )}
 
-                        <div style={{
-                            textAlign: 'center',
-                            margin: '8px 0 4px',
-                            padding: '4px',
-                            backgroundColor: '#f8f9fa',
-                            borderRadius: '4px',
-                            fontSize: '0.9em'
-                        }}>
-                            <span style={{ fontWeight: '500' }}>Line: </span>
-                            <span style={{ fontFamily: 'monospace' }}>
-                                {odds.Over?.point || odds.Under?.point || '-'}
-                            </span>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* Insights button */}
+            {/* Insights button with loading state */}
             <button
                 onClick={handleGetInsights}
+                disabled={isFetchingInsights}
                 style={{
                     marginTop: '15px',
                     padding: '8px 12px',
-                    backgroundColor: '#4CAF50',
+                    backgroundColor: isFetchingInsights ? '#2E7D32' : '#4CAF50',
                     color: 'white',
                     border: 'none',
                     borderRadius: '4px',
-                    cursor: 'pointer',
+                    cursor: isFetchingInsights ? 'wait' : 'pointer',
                     width: '100%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
                     fontSize: '0.9rem',
-                    transition: 'background-color 0.2s',
+                    transition: 'all 0.2s',
+                    position: 'relative'
                 }}
+                aria-busy={isFetchingInsights}
             >
-                <FaChartLine /> Get Insights
+                {isFetchingInsights ? (
+                    <>
+                        <span style={{ visibility: 'hidden' }}>
+                            <FaChartLine /> Get Insights
+                        </span>
+                        <span style={{
+                            position: 'absolute',
+                            left: '50%',
+                            transform: 'translateX(-50%)'
+                        }}>
+                            Analyzing...
+                        </span>
+                    </>
+                ) : (
+                    <>
+                        <FaChartLine /> Get Insights
+                    </>
+                )}
             </button>
 
-            {/* Debug view - only visible in development and when showTrends is true */}
-            {process.env.NODE_ENV === 'development' && showTrends && (
+            {/* Debug view - only visible in development */}
+            {process.env.NODE_ENV === 'development' && (
                 <div style={{
                     marginTop: '15px',
                     fontSize: '0.8em',
@@ -243,31 +300,46 @@ const PlayerBlock = ({ playerName, playerData, onRemove, onGetInsights }) => {
                     borderTop: '1px dashed #eee',
                     paddingTop: '10px'
                 }}>
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        marginBottom: '5px'
-                    }}>
-                        <span style={{ fontWeight: '500' }}>Last Updated:</span>
-                        <span>{new Date().toLocaleTimeString()}</span>
-                    </div>
-                    <pre style={{
-                        backgroundColor: 'lightgrey',
-                        padding: '10px',
-                        borderRadius: '4px',
-                        overflowX: 'auto',
-                        fontSize: '0.7em',
-                        maxHeight: '150px'
-                    }}>
-                        {JSON.stringify({
-                            historicalData,
-                            trends
-                        }, null, 2)}
-                    </pre>
+                    <button
+                        onClick={() => setShowTrends(!showTrends)}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#666',
+                            cursor: 'pointer',
+                            textDecoration: 'underline'
+                        }}
+                    >
+                        {showTrends ? 'Hide Debug' : 'Show Debug'}
+                    </button>
+                    {showTrends && (
+                        <pre style={{
+                            backgroundColor: 'lightgrey',
+                            padding: '10px',
+                            borderRadius: '4px',
+                            overflowX: 'auto',
+                            fontSize: '0.7em',
+                            maxHeight: '150px',
+                            marginTop: '10px'
+                        }}>
+                            {JSON.stringify({
+                                historicalData,
+                                trends,
+                                isFetching: isFetchingInsights
+                            }, null, 2)}
+                        </pre>
+                    )}
                 </div>
             )}
         </div>
     );
 };
 
-export default PlayerBlock;
+export default React.memo(PlayerBlock, (prevProps, nextProps) => {
+    return (
+        prevProps.playerName === nextProps.playerName &&
+        JSON.stringify(prevProps.playerData) === JSON.stringify(nextProps.playerData) &&
+        prevProps.onRemove === nextProps.onRemove &&
+        prevProps.onGetInsights === nextProps.onGetInsights
+    );
+});

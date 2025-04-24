@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import PlayerBlock from "../../features/PlayerBlock.jsx";
 import { fetchCurrentGames, fetchGameOdds } from "../../../services/api.jsx";
 import useWindowSize from '../../../hooks/useWindowSize';
 import Gemini from "../../features/Gemini.jsx";
+import GameCard from "./GameCard.jsx";
 
 function PropBetContainer() {
     const [games, setGames] = useState([]);
@@ -15,13 +16,15 @@ function PropBetContainer() {
     const [oddsError, setOddsError] = useState(null);
     const [selectedPlayerData, setSelectedPlayerData] = useState(null);
     const { width } = useWindowSize();
+    const geminiRef = useRef(null);
 
-    const getColumns = () => {
+    // Memoized columns calculation
+    const columns = useMemo(() => {
         if (width < 600) return 1;
         if (width < 900) return 2;
         if (width < 1200) return 3;
         return 4;
-    };
+    }, [width]);
 
     // Load games on startup
     useEffect(() => {
@@ -47,24 +50,37 @@ function PropBetContainer() {
 
         const fetchOdds = async () => {
             setOddsLoading(true);
-            setOddsError(null);
             try {
-                const result = await fetchGameOdds(
-                    'basketball_nba',
-                    selectedGame.id,
-                    'player_points'
-                );
+                const result = await fetchGameOdds('basketball_nba', selectedGame.id, 'player_points');
 
-                if (!result?.data?.player || Object.keys(result.data.player).length === 0) {
-                    throw new Error('No player data available for this game');
+                if (result?.data?.player) {
+                    // Add game metadata to each player's data
+                    const playersWithMetadata = Object.keys(result.data.player).reduce((acc, player) => {
+                        acc[player] = {
+                            ...result.data.player[player],
+                            gameMetadata: {
+                                homeTeam: selectedGame.home_team,
+                                awayTeam: selectedGame.away_team,
+                                gameTime: selectedGame.commence_time,
+                                venue: selectedGame.venue
+                            }
+                        };
+                        return acc;
+                    }, {});
+
+                    setData({
+                        ...result,
+                        data: {
+                            ...result.data,
+                            player: playersWithMetadata
+                        }
+                    });
                 }
-
-                setData(result);
             } catch (err) {
                 setOddsError(err.message.includes('No player data')
                     ? 'No odds currently available for this game'
                     : 'Failed to load player odds. Please try again.');
-                setData(null); // Clear any previous data
+                setData(null);
                 console.error(err);
             } finally {
                 setOddsLoading(false);
@@ -76,17 +92,60 @@ function PropBetContainer() {
         return () => clearInterval(intervalId);
     }, [selectedGame]);
 
-    const togglePlayerTracking = (playerName) => {
+    // Stable callback for toggling players
+    const togglePlayerTracking = useCallback((playerName) => {
         setTrackedPlayers(prev =>
             prev.includes(playerName)
                 ? prev.filter(name => name !== playerName)
                 : [...prev, playerName]
         );
-    };
+    }, []);
 
-    const handleGetInsights = (playerData) => {
-        setSelectedPlayerData(playerData);
-    };
+    // Stable callback for insights
+    const handleGetInsights = useCallback((playerData) => {
+        console.log("Get Insights clicked");
+        if (geminiRef.current) {
+            console.log("Gemini ref exists, calling analyzePlayer");
+            geminiRef.current.analyzePlayer(playerData);
+        } else {
+            console.error("Gemini ref is not available");
+        }
+    }, []);
+
+    // Memoized game grid
+    const gameGrid = useMemo(() => (
+        <div style={{
+            display: 'grid',
+            gridTemplateColumns: `repeat(${columns}, minmax(280px, 1fr))`,
+            gap: '15px',
+            transition: 'grid-template-columns 0.3s ease'
+        }}>
+            {games.map(game => (
+                <GameCard
+                    key={game.id}
+                    game={game}
+                    isSelected={selectedGame?.id === game.id}
+                    onClick={() => {
+                        setSelectedGame(game);
+                        setTrackedPlayers([]);
+                    }}
+                />
+            ))}
+        </div>
+    ), [games, columns, selectedGame]);
+
+    // Memoized player blocks
+    const playerBlocks = useMemo(() => (
+        trackedPlayers.map(player => (
+            <PlayerBlock
+                key={player}
+                playerName={player}
+                playerData={data?.data?.player[player]}
+                onRemove={() => togglePlayerTracking(player)}
+                onGetInsights={handleGetInsights}
+            />
+        ))
+    ), [trackedPlayers, data, togglePlayerTracking, handleGetInsights]);
 
     return (
         <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
@@ -107,24 +166,7 @@ function PropBetContainer() {
                 {loading ? (
                     <p>Loading games...</p>
                 ) : (
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: `repeat(${getColumns()}, minmax(280px, 1fr))`,
-                        gap: '15px',
-                        transition: 'grid-template-columns 0.3s ease'
-                    }}>
-                        {games.map(game => (
-                            <GameCard
-                                key={game.id}
-                                game={game}
-                                isSelected={selectedGame?.id === game.id}
-                                onClick={() => {
-                                    setSelectedGame(game);
-                                    setTrackedPlayers([]);
-                                }}
-                            />
-                        ))}
-                    </div>
+                    gameGrid
                 )}
             </div>
 
@@ -209,15 +251,7 @@ function PropBetContainer() {
                                         gridTemplateColumns: `repeat(auto-fill, minmax(${width < 600 ? '100%' : '300px'}, 1fr))`,
                                         gap: '20px'
                                     }}>
-                                        {trackedPlayers.map(player => (
-                                            <PlayerBlock
-                                                key={player}
-                                                playerName={player}
-                                                playerData={data?.data?.player[player]}
-                                                onRemove={() => togglePlayerTracking(player)}
-                                                onGetInsights={handleGetInsights}
-                                            />
-                                        ))}
+                                        {playerBlocks}
                                     </div>
                                 ) : (
                                     <div style={{
@@ -236,41 +270,10 @@ function PropBetContainer() {
                 </div>
             )}
 
-            {/* Render Gemini chatbot with selected player data */}
-            {selectedPlayerData && <Gemini data={selectedPlayerData} />}
+            {/* Gemini Chatbot */}
+            <Gemini ref={geminiRef} />
         </div>
     );
 }
 
-const GameCard = ({ game, isSelected, onClick }) => (
-    <div
-        style={{
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            padding: '15px',
-            cursor: 'pointer',
-            backgroundColor: isSelected ? 'lightgreen' : 'darkgray',
-            transition: 'all 0.2s',
-            ':hover': {
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-            }
-        }}
-        onClick={onClick}
-    >
-        <p style={{ fontWeight: 'bold', margin: '0 0 5px 0' }}>
-            {game.home_team} vs {game.away_team}
-        </p>
-        <p style={{ color: '#666', fontSize: '0.9em', margin: 0 }}>
-            {new Date(game.commence_time).toLocaleString(undefined, {
-                timeZoneName: 'short',
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit'
-            })}
-        </p>
-    </div>
-);
-
-export default PropBetContainer;
+export default React.memo(PropBetContainer);

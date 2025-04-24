@@ -1,13 +1,7 @@
 import json
 
-from django.test import TestCase
-
 # Create your tests here.
 from django.test import TestCase, RequestFactory
-from django.conf import settings
-
-import requests
-import requests_mock
 
 from core.views import fetch_sports, fetch_current_games
 
@@ -17,9 +11,10 @@ class FetchSportsTestCase(TestCase):
         self.factory = RequestFactory()
 
     def test_server_responding(self):
-        request = self.factory.get('/fetch-sports/')
+        request = self.factory.get("/fetch-sports/")
         response = fetch_sports(request)
         self.assertEqual(response.status_code, 200)
+
 
 class FetchCurrentGamesTestCase(TestCase):
     def setUp(self):
@@ -27,13 +22,13 @@ class FetchCurrentGamesTestCase(TestCase):
         self.sport = "basketball_nba"  # Valid sport key
 
     def test_fetch_current_games_valid_sport(self):
-        request = self.factory.get(f'/fetch-current-games/{self.sport}/')
+        request = self.factory.get(f"/fetch-current-games/{self.sport}/")
         response = fetch_current_games(request, sport=self.sport)
         self.assertEqual(response.status_code, 200)
         response_data = json.loads(response.content)
         self.assertIsInstance(response_data, list)
 
-        if response_data:  #TODO: add logic to catch failures when nba not in season
+        if response_data:  # TODO: add logic to catch failures when nba not in season
             first_event = response_data[0]
             self.assertIn("id", first_event)
             self.assertIn("sport_key", first_event)

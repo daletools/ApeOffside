@@ -43,6 +43,17 @@ export const fetchOddsAPI = async (sport) => {
     return response.data;
 };
 
+export const fetchInsightsAPI = async (data) => {
+    try {
+        console.log("Fetching insights via POST", data);
+        const response = await api.post('/insights/insights/', data); // POST with JSON body
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching insights:", error);
+        throw error; // Re-throw to handle in the component
+    }
+};
+
 export const fetchChatResponse = async (message, promptType = '') => {
     // Using GET request to fetch chat response
     try {
