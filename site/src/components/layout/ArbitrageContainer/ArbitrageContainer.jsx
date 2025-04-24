@@ -200,6 +200,51 @@ function ArbitrageContainer() {
             near_arbitrage: []
         }
     };
+    //NBA Logos
+    const teamLogos = {
+        "Atlanta Hawks": "https://cdn.nba.com/logos/nba/1610612737/primary/L/logo.svg",
+        "Boston Celtics": "https://cdn.nba.com/logos/nba/1610612738/primary/L/logo.svg",
+        "Brooklyn Nets": "https://cdn.nba.com/logos/nba/1610612751/primary/L/logo.svg",
+        "Charlotte Hornets": "https://cdn.nba.com/logos/nba/1610612766/primary/L/logo.svg",
+        "Chicago Bulls": "https://cdn.nba.com/logos/nba/1610612741/primary/L/logo.svg",
+        "Cleveland Cavaliers": "https://cdn.nba.com/logos/nba/1610612739/primary/L/logo.svg",
+        "Dallas Mavericks": "https://cdn.nba.com/logos/nba/1610612742/primary/L/logo.svg",
+        "Denver Nuggets": "https://cdn.nba.com/logos/nba/1610612743/primary/L/logo.svg",
+        "Detroit Pistons": "https://cdn.nba.com/logos/nba/1610612765/primary/L/logo.svg",
+        "Golden State Warriors": "https://cdn.nba.com/logos/nba/1610612744/primary/L/logo.svg",
+        "Houston Rockets": "https://cdn.nba.com/logos/nba/1610612745/primary/L/logo.svg",
+        "Indiana Pacers": "https://cdn.nba.com/logos/nba/1610612754/primary/L/logo.svg",
+        "LA Clippers": "https://cdn.nba.com/logos/nba/1610612746/primary/L/logo.svg",
+        "Los Angeles Lakers": "https://cdn.nba.com/logos/nba/1610612747/primary/L/logo.svg",
+        "Memphis Grizzlies": "https://cdn.nba.com/logos/nba/1610612763/primary/L/logo.svg",
+        "Miami Heat": "https://cdn.nba.com/logos/nba/1610612748/primary/L/logo.svg",
+        "Milwaukee Bucks": "https://cdn.nba.com/logos/nba/1610612749/primary/L/logo.svg",
+        "Minnesota Timberwolves": "https://cdn.nba.com/logos/nba/1610612750/primary/L/logo.svg",
+        "New Orleans Pelicans": "https://cdn.nba.com/logos/nba/1610612740/primary/L/logo.svg",
+        "New York Knicks": "https://cdn.nba.com/logos/nba/1610612752/primary/L/logo.svg",
+        "Oklahoma City Thunder": "https://cdn.nba.com/logos/nba/1610612760/primary/L/logo.svg",
+        "Orlando Magic": "https://cdn.nba.com/logos/nba/1610612753/primary/L/logo.svg",
+        "Philadelphia 76ers": "https://cdn.nba.com/logos/nba/1610612755/primary/L/logo.svg",
+        "Phoenix Suns": "https://cdn.nba.com/logos/nba/1610612756/primary/L/logo.svg",
+        "Portland Trail Blazers": "https://cdn.nba.com/logos/nba/1610612757/primary/L/logo.svg",
+        "Sacramento Kings": "https://cdn.nba.com/logos/nba/1610612758/primary/L/logo.svg",
+        "San Antonio Spurs": "https://cdn.nba.com/logos/nba/1610612759/primary/L/logo.svg",
+        "Toronto Raptors": "https://cdn.nba.com/logos/nba/1610612761/primary/L/logo.svg",
+        "Utah Jazz": "https://cdn.nba.com/logos/nba/1610612762/primary/L/logo.svg",
+        "Washington Wizards": "https://cdn.nba.com/logos/nba/1610612764/primary/L/logo.svg"
+    };
+
+    const getLogoFromEvent = (event) => {
+        const teamsInEvent = event.split(" vs ").map(team => team.trim());
+        for (const fullTeamName in teamLogos) {
+            for (const short of teamsInEvent) {
+                if (fullTeamName.toLowerCase().includes(short.toLowerCase())) {
+                    return teamLogos[fullTeamName];
+                }
+            }
+        }
+        return null;
+    };
 
 
     useEffect(() => {
@@ -401,89 +446,144 @@ function ArbitrageContainer() {
                         <div className="mock-data-container">
                             <h5>🧪 Mock Arbitrage Example</h5>
                             <ul className="arb-list mock-data-grid">
-                                {opportunities.arbitrage.map((opp, idx) => (
-                                    <li key={`arb-${idx}`} className="arb-opportunity">
-                                        <strong>{opp.type.replace(/_/g, ' ').toUpperCase()}</strong><br/>
-                                        <em>{opp.player || "N/A"} — Line: {opp.line ?? "?"} pts</em><br/>
-                                        {opp.event}<br/>
-                                        {opp.side_1.name} (
-                                        <a href={opp.side_1.site} target="_blank" rel="noopener noreferrer">
-                                            {opp.side_1.bookmaker}
-                                        </a> @ {opp.side_1.price}
-                                        ) vs{" "}
-                                        {opp.side_2.name} (
-                                        <a href={opp.side_2.site} target="_blank" rel="noopener noreferrer">
-                                            {opp.side_2.bookmaker}
-                                        </a> @ {opp.side_2.price}
-                                        )
-                                        <br/>
-                                        <strong>Arbitrage: {opp.profit_percent}%</strong>
-                                    </li>
-                                ))}
+                                {opportunities.arbitrage.map((opp, idx) => {
+                                    const logo = getLogoFromEvent(opp.event);
+                                    console.log(opp.event, "→", logo);
+                                    return (
+                                        <li
+                                            key={`arb-${idx}`}
+                                            className="arb-opportunity"
+                                            style={{
+                                                backgroundImage: logo ? `url(${logo})` : "none",
+                                                backgroundRepeat: "no-repeat",
+                                                backgroundPosition: "right bottom",
+                                                backgroundSize: "80px",
+                                            }}
+                                        >
+                                            <strong>{opp.type.replace(/_/g, ' ').toUpperCase()}</strong>
+                                            <div style={{fontSize: "1rem", margin: "0.25rem 0"}}>
+                                                <strong>{opp.player || "N/A"}</strong><br/>
+                                                <span style={{fontStyle: "italic", color: "#444"}}>
+                                Line: {opp.line ?? "?"} pts
+                            </span>
+                                            </div>
+                                            {opp.event}<br/>
+                                            {opp.side_1.name} (
+                                            <a href={opp.side_1.site} target="_blank" rel="noopener noreferrer">
+                                                {opp.side_1.bookmaker}
+                                            </a> @ {opp.side_1.price}
+                                            ) vs{" "}
+                                            {opp.side_2.name} (
+                                            <a href={opp.side_2.site} target="_blank" rel="noopener noreferrer">
+                                                {opp.side_2.bookmaker}
+                                            </a> @ {opp.side_2.price}
+                                            )
+                                            <br/>
+                                            <strong>Arbitrage: {opp.profit_percent}%</strong>
+                                        </li>
+                                    );
+                                })}
                             </ul>
                         </div>
                     )}
+
 
                     {/* True arbitrage */}
                     {!useMock && opportunities?.arbitrage?.length > 0 && (
                         <div className="true-arbitrage-container">
                             <h5>🔥 True Arbitrage</h5>
                             <ul className="true-data-grid arb-list">
-                                {opportunities.arbitrage.map((opp, idx) => (
-                                    <li key={`arb-${idx}`} className="arb-opportunity">
-                                        <strong>{opp.type.replace(/_/g, ' ').toUpperCase()}</strong><br/>
-                                        <em>{opp.player || "N/A"} — Line: {opp.line ?? "?"} pts</em><br/>
-                                        {opp.event}<br/>
-                                        {opp.side_1.name} (
-                                        <a href={opp.side_1.site} target="_blank" rel="noopener noreferrer">
-                                            {opp.side_1.bookmaker}
-                                        </a> @ {opp.side_1.price}
-                                        ) vs{" "}
-                                        {opp.side_2.name} (
-                                        <a href={opp.side_2.site} target="_blank" rel="noopener noreferrer">
-                                            {opp.side_2.bookmaker}
-                                        </a> @ {opp.side_2.price}
-                                        )
-                                        <br/>
-                                        <strong>Arbitrage: {opp.profit_percent}%</strong>
-                                    </li>
-                                ))}
+                                {opportunities.arbitrage.map((opp, idx) => {
+                                    const logo = getLogoFromEvent(opp.event);
+                                    return (
+                                        <li
+                                            key={`arb-${idx}`}
+                                            className="arb-opportunity"
+                                            style={{
+                                                backgroundImage: logo ? `url(${logo})` : "none",
+                                                backgroundRepeat: "no-repeat",
+                                                backgroundPosition: "right bottom",
+                                                backgroundSize: "80px",
+                                            }}
+                                        >
+                                            <strong>{opp.type.replace(/_/g, ' ').toUpperCase()}</strong>
+                                            <div style={{fontSize: "1rem", margin: "0.25rem 0"}}>
+                                                <strong>{opp.player || "N/A"}</strong><br/>
+                                                <span style={{fontStyle: "italic", color: "#444"}}>
+                                Line: {opp.line ?? "?"} pts
+                            </span>
+                                            </div>
+                                            {opp.event}<br/>
+                                            {opp.side_1.name} (
+                                            <a href={opp.side_1.site} target="_blank" rel="noopener noreferrer">
+                                                {opp.side_1.bookmaker}
+                                            </a> @ {opp.side_1.price}
+                                            ) vs{" "}
+                                            {opp.side_2.name} (
+                                            <a href={opp.side_2.site} target="_blank" rel="noopener noreferrer">
+                                                {opp.side_2.bookmaker}
+                                            </a> @ {opp.side_2.price}
+                                            )
+                                            <br/>
+                                            <strong>Arbitrage: {opp.profit_percent}%</strong>
+                                        </li>
+                                    );
+                                })}
                             </ul>
                         </div>
                     )}
+
 
                     {/* Near-arbitrage */}
                     {!useMock && opportunities?.near_arbitrage?.length > 0 && (
                         <div className="near-arbitrage-container">
                             <h5>Near-Arbitrage Opportunities</h5>
                             <ul className="near-data-grid arb-list">
-                                {opportunities.near_arbitrage.map((opp, idx) => (
-                                    <li key={`near-${idx}`} className="arb-opportunity">
-                                        <strong>{opp.type.replace(/_/g, ' ').toUpperCase()}</strong><br/>
-                                        <em>{opp.player || "N/A"} — Line: {opp.line ?? "?"} pts</em><br/>
-                                        {opp.event}<br/>
-                                        {opp.side_1.name} (
-                                        <a href={opp.side_1.site} target="_blank" rel="noopener noreferrer">
-                                            {opp.side_1.bookmaker}
-                                        </a> @ {opp.side_1.price}
-                                        ) vs{" "}
-                                        {opp.side_2.name} (
-                                        <a href={opp.side_2.site} target="_blank" rel="noopener noreferrer">
-                                            {opp.side_2.bookmaker}
-                                        </a> @ {opp.side_2.price}
-                                        )
-                                        <br/>
-                                        <strong>
-                                            Combined Implied Probability: {opp.implied_total.toFixed(3)}
-                                        </strong><br/>
-                                        <span style={{fontStyle: "italic", color: "#777"}}>
-                                Edge: {(100 - opp.implied_total * 100).toFixed(2)}%
+                                {opportunities.near_arbitrage.map((opp, idx) => {
+                                    const logo = getLogoFromEvent(opp.event);
+                                    return (
+                                        <li
+                                            key={`near-${idx}`}
+                                            className="arb-opportunity"
+                                            style={{
+                                                backgroundImage: logo ? `url(${logo})` : "none",
+                                                backgroundRepeat: "no-repeat",
+                                                backgroundPosition: "right bottom",
+                                                backgroundSize: "80px",
+                                            }}
+                                        >
+                                            <strong>{opp.type.replace(/_/g, ' ').toUpperCase()}</strong>
+                                            <div style={{fontSize: "1rem", margin: "0.25rem 0"}}>
+                                                <strong>{opp.player || "N/A"}</strong><br/>
+                                                <span style={{fontStyle: "italic", color: "#444"}}>
+                                Line: {opp.line ?? "?"} pts
                             </span>
-                                    </li>
-                                ))}
+                                            </div>
+                                            {opp.event}<br/>
+                                            {opp.side_1.name} (
+                                            <a href={opp.side_1.site} target="_blank" rel="noopener noreferrer">
+                                                {opp.side_1.bookmaker}
+                                            </a> @ {opp.side_1.price}
+                                            ) vs{" "}
+                                            {opp.side_2.name} (
+                                            <a href={opp.side_2.site} target="_blank" rel="noopener noreferrer">
+                                                {opp.side_2.bookmaker}
+                                            </a> @ {opp.side_2.price}
+                                            )
+                                            <br/>
+                                            <strong>
+                                                Combined Implied Probability: {opp.implied_total.toFixed(3)}
+                                            </strong><br/>
+                                            <span style={{fontStyle: "italic", color: "#777"}}>
+                            Edge: {(100 - opp.implied_total * 100).toFixed(2)}%
+                        </span>
+                                        </li>
+                                    );
+                                })}
                             </ul>
                         </div>
                     )}
+
                     {/* Mock button — shown if not loading and not already using mock */}
                     {!loading && !useMock && (
                         <div style={{textAlign: "center", margin: "1rem 0"}}>
