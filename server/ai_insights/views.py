@@ -331,7 +331,6 @@ def gemini_view(request, players=None, player_name=None):
                 prompts = [
                     {"id": "betting_advice", "text": "1. Do you want betting advice?"},
                     {"id": "team_odds", "text": "2. Do you want info on team odds?"},
-                    {"id": "player_stats", "text": "3. Do you want player stats?"},
                 ]
                 return JsonResponse(
                     {"response": "How can I help you win big?!", "prompts": prompts}
@@ -377,42 +376,6 @@ def gemini_view(request, players=None, player_name=None):
                         {
                             "response": "Here are the current NBA team odds:",
                             "data": table_html,
-                        }
-                    )
-
-                elif prompt_type == "player_stats":
-                    # Return sub-prompts for player stats
-                    prompts = [
-                        {"id": "season_stats", "text": "a) Season stats"},
-                        {"id": "game_stats", "text": "b) Game stats"},
-                    ]
-                    return JsonResponse(
-                        {
-                            "response": "What type of player stats would you like to see?",
-                            "prompts": prompts,
-                        }
-                    )
-
-                elif prompt_type == "season_stats":
-                    # Ask user to specify a player for season stats
-                    # Store the stat type in the session
-                    request.session = request.session or {}
-                    request.session["stats_type"] = "season"
-                    return JsonResponse(
-                        {
-                            "response": "Please enter a player's name by typing 'player' followed by their first and last name. For example: 'player LeBron James'",
-                        }
-                    )
-
-                elif prompt_type == "game_stats":
-                    # Ask user to specify a player for game stats
-                    # Store the stat type in the session
-                    request.session = request.session or {}
-                    request.session["stats_type"] = "game"
-                    return JsonResponse(
-                        {
-                            "response": "Please enter a player's name by typing 'player' followed by their first and last name. For example: 'player Stephen Curry'",
-                            "info": "Game stats will show the player's performance in recent games.",
                         }
                     )
 
