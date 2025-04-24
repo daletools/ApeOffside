@@ -50,14 +50,40 @@
 }
 
 /* Containers for true and near arbitrage sections */
-.true-arbitrage-container,
-.near-arbitrage-container {
-    background-color: #f5f5f5;
-    border: 2px solid #ddd;
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin: 1.5rem auto;
+.true-arbitrage-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #036704;
+    text-align: center;
+    padding: 2rem;
+    border-radius: 10px;
+    margin: 2rem auto;
     max-width: 900px;
+}
+.near-arbitrage-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #d3494e;
+    text-align: center;
+    padding: 2rem;
+    border-radius: 10px;
+    margin: 2rem auto;
+    max-width: 900px;
+}
+
+.true-data-grid,
+.near-data-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    justify-content: center;
+    padding: 0;
+    list-style: none;
+    margin-top: 1rem;
 }
 
 /* Typography inside cards */
@@ -107,7 +133,7 @@
 
 .true-arbitrage-container h5,
 .near-arbitrage-container h5 {
-    color: #333; /* darker text for light backgrounds */
+    color: #ffffff; /* darker text for light backgrounds */
 }
 
 .spinner-container {

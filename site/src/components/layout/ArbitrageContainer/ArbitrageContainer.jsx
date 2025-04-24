@@ -248,9 +248,14 @@ function ArbitrageContainer() {
 
 
     const handleMockLoad = () => {
-        const mock = mockOpportunities[playerPropType] || [];
-        setUseMock(true);
-        setOpportunities(mock); // ✅ Ensure immediate display
+        if (useMock) {
+            setUseMock(false);
+            setOpportunities({arbitrage: [], near_arbitrage: []}); // Optional: reset to real
+        } else {
+            const mock = mockOpportunities[playerPropType] || [];
+            setUseMock(true);
+            setOpportunities(mock);
+        }
     };
 
 
@@ -376,128 +381,121 @@ function ArbitrageContainer() {
 
             {/* Opportunities Display */}
             {playerPropType && (
-
                 <div style={{marginTop: "2rem"}}>
                     <h4>
                         Arbitrage Opportunities for:{" "}
                         {playerPropType.replace("player_", "").replace(/_/g, " ").toUpperCase()}
                     </h4>
-                    {/* No Opportunities */}
-                    {!loading &&
-                        opportunities?.arbitrage?.length === 0 && (
-                            <div>
-                                <p>No arbitrage opportunities available right now. Try checking back later —
-                                    these change often!</p>
-                            </div>
-                        )}
-                    {/*  Show loading indicator */}
+
+                    {/* Spinner */}
                     {loading && (
                         <div className="spinner-container">
                             <div className="spinner"></div>
                             <p>Loading opportunities...</p>
                         </div>
                     )}
-                    {(opportunities?.arbitrage?.length === 0 && opportunities?.near_arbitrage?.length === 0) ? (
 
-                        <div>
+
+                    {/* Mock data */}
+                    {useMock && (
+                        <div className="mock-data-container">
+                            <h5>🧪 Mock Arbitrage Example</h5>
+                            <ul className="arb-list mock-data-grid">
+                                {opportunities.arbitrage.map((opp, idx) => (
+                                    <li key={`arb-${idx}`} className="arb-opportunity">
+                                        <strong>{opp.type.replace(/_/g, ' ').toUpperCase()}</strong><br/>
+                                        <em>{opp.player || "N/A"} — Line: {opp.line ?? "?"} pts</em><br/>
+                                        {opp.event}<br/>
+                                        {opp.side_1.name} (
+                                        <a href={opp.side_1.site} target="_blank" rel="noopener noreferrer">
+                                            {opp.side_1.bookmaker}
+                                        </a> @ {opp.side_1.price}
+                                        ) vs{" "}
+                                        {opp.side_2.name} (
+                                        <a href={opp.side_2.site} target="_blank" rel="noopener noreferrer">
+                                            {opp.side_2.bookmaker}
+                                        </a> @ {opp.side_2.price}
+                                        )
+                                        <br/>
+                                        <strong>Arbitrage: {opp.profit_percent}%</strong>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    {/* True arbitrage */}
+                    {!useMock && opportunities?.arbitrage?.length > 0 && (
+                        <div className="true-arbitrage-container">
+                            <h5>🔥 True Arbitrage</h5>
+                            <ul className="true-data-grid arb-list">
+                                {opportunities.arbitrage.map((opp, idx) => (
+                                    <li key={`arb-${idx}`} className="arb-opportunity">
+                                        <strong>{opp.type.replace(/_/g, ' ').toUpperCase()}</strong><br/>
+                                        <em>{opp.player || "N/A"} — Line: {opp.line ?? "?"} pts</em><br/>
+                                        {opp.event}<br/>
+                                        {opp.side_1.name} (
+                                        <a href={opp.side_1.site} target="_blank" rel="noopener noreferrer">
+                                            {opp.side_1.bookmaker}
+                                        </a> @ {opp.side_1.price}
+                                        ) vs{" "}
+                                        {opp.side_2.name} (
+                                        <a href={opp.side_2.site} target="_blank" rel="noopener noreferrer">
+                                            {opp.side_2.bookmaker}
+                                        </a> @ {opp.side_2.price}
+                                        )
+                                        <br/>
+                                        <strong>Arbitrage: {opp.profit_percent}%</strong>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    {/* Near-arbitrage */}
+                    {!useMock && opportunities?.near_arbitrage?.length > 0 && (
+                        <div className="near-arbitrage-container">
+                            <h5>Near-Arbitrage Opportunities</h5>
+                            <ul className="near-data-grid arb-list">
+                                {opportunities.near_arbitrage.map((opp, idx) => (
+                                    <li key={`near-${idx}`} className="arb-opportunity">
+                                        <strong>{opp.type.replace(/_/g, ' ').toUpperCase()}</strong><br/>
+                                        <em>{opp.player || "N/A"} — Line: {opp.line ?? "?"} pts</em><br/>
+                                        {opp.event}<br/>
+                                        {opp.side_1.name} (
+                                        <a href={opp.side_1.site} target="_blank" rel="noopener noreferrer">
+                                            {opp.side_1.bookmaker}
+                                        </a> @ {opp.side_1.price}
+                                        ) vs{" "}
+                                        {opp.side_2.name} (
+                                        <a href={opp.side_2.site} target="_blank" rel="noopener noreferrer">
+                                            {opp.side_2.bookmaker}
+                                        </a> @ {opp.side_2.price}
+                                        )
+                                        <br/>
+                                        <strong>
+                                            Combined Implied Probability: {opp.implied_total.toFixed(3)}
+                                        </strong><br/>
+                                        <span style={{fontStyle: "italic", color: "#777"}}>
+                                Edge: {(100 - opp.implied_total * 100).toFixed(2)}%
+                            </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                    {/* Mock button — shown if not loading and not already using mock */}
+                    {!loading && !useMock && (
+                        <div style={{textAlign: "center", margin: "1rem 0"}}>
                             <button onClick={handleMockLoad}>Show Example with Mock Data</button>
                         </div>
-                    ) : (
-                        <>
-                            {/* Show mock data inside its own container */}
-                            {useMock && (
-                                <div className="mock-data-container">
-                                    <h5>🧪 Mock Arbitrage Example</h5>
-                                    <ul className={`arb-list ${useMock ? "mock-data-grid" : ""}`}>
-                                        {opportunities.arbitrage.map((opp, idx) => (
-                                            <li key={`arb-${idx}`} className="arb-opportunity">
-                                                <strong>{opp.type.replace(/_/g, ' ').toUpperCase()}</strong><br/>
-                                                <em>{opp.player || "N/A"} — Line: {opp.line ?? "?"} pts</em><br/>
-                                                {opp.event}<br/>
-                                                {opp.side_1.name} (
-                                                <a href={opp.side_1.site} target="_blank" rel="noopener noreferrer">
-                                                    {opp.side_1.bookmaker}
-                                                </a> @ {opp.side_1.price}
-                                                ) vs{" "}
-                                                {opp.side_2.name} (
-                                                <a href={opp.side_2.site} target="_blank" rel="noopener noreferrer">
-                                                    {opp.side_2.bookmaker}
-                                                </a> @ {opp.side_2.price}
-                                                )
-                                                <br/>
-                                                <strong>Arbitrage: {opp.profit_percent}%</strong>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-
-                            {/* True Arbitrage Section */}
-                            {!useMock && opportunities?.arbitrage?.length > 0 && (
-                                <div className="true-arbitrage-container">
-                                    <h5>🔥 True Arbitrage</h5>
-                                    <ul>
-                                        {opportunities.arbitrage.map((opp, idx) => (
-                                            <li key={`arb-${idx}`} style={{marginBottom: '1rem'}}>
-                                                <strong>{opp.type.replace(/_/g, ' ').toUpperCase()}</strong><br/>
-                                                <em>{opp.player || "N/A"} — Line: {opp.line ?? "?"} pts</em><br/>
-                                                {opp.event}<br/>
-                                                {opp.side_1.name} (
-                                                <a href={opp.side_1.site} target="_blank" rel="noopener noreferrer">
-                                                    {opp.side_1.bookmaker}
-                                                </a> @ {opp.side_1.price}
-                                                ) vs{" "}
-                                                {opp.side_2.name} (
-                                                <a href={opp.side_2.site} target="_blank" rel="noopener noreferrer">
-                                                    {opp.side_2.bookmaker}
-                                                </a> @ {opp.side_2.price}
-                                                )
-                                                <br/>
-                                                <strong>Arbitrage: {opp.profit_percent}%</strong>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-
-                            {/* Near-Arbitrage Section */}
-                            {!useMock && opportunities?.near_arbitrage?.length > 0 && (
-                                <div className="near-arbitrage-container">
-                                    <h5> Near-Arbitrage Opportunities</h5>
-                                    <ul>
-                                        {opportunities.near_arbitrage.map((opp, idx) => (
-                                            <li key={`near-${idx}`} style={{marginBottom: '1rem', opacity: 0.8}}>
-                                                <strong>{opp.type.replace(/_/g, ' ').toUpperCase()}</strong><br/>
-                                                <em>{opp.player || "N/A"} — Line: {opp.line ?? "?"} pts</em><br/>
-                                                {opp.event}<br/>
-                                                {opp.side_1.name} (
-                                                <a href={opp.side_1.site} target="_blank" rel="noopener noreferrer">
-                                                    {opp.side_1.bookmaker}
-                                                </a> @ {opp.side_1.price}
-                                                ) vs{" "}
-                                                {opp.side_2.name} (
-                                                <a href={opp.side_2.site} target="_blank" rel="noopener noreferrer">
-                                                    {opp.side_2.bookmaker}
-                                                </a> @ {opp.side_2.price}
-                                                )
-                                                <br/>
-                                                <strong>
-                                                    Combined Implied Probability: {opp.implied_total.toFixed(3)}
-                                                </strong><br/>
-                                                <span style={{fontStyle: "italic", color: "#777"}}>
-                                                Edge: {(100 - opp.implied_total * 100).toFixed(2)}%
-                                            </span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-                        </>
                     )}
                 </div>
             )}
+
         </div>
-    );
+    )
+        ;
 
 }
 
