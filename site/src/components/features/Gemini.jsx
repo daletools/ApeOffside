@@ -300,6 +300,12 @@ const Gemini = forwardRef((props, ref) => {
                             className="chat-input"
                             value={input}
                             onChange={handleInputChange}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSendMessage(e);
+                                }
+                            }}
                             placeholder="Type your message..."
                             disabled={isLoading}
                             rows="1"

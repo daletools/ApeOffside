@@ -438,7 +438,7 @@ def gemini_view(request, players=None, player_name=None):
 
             # Handle regular text messages
             # Check if the user is asking about odds
-            odds_requested = re.search(r"\bodd\b", user_message, re.IGNORECASE)
+            odds_requested = re.search(r"\bodds\b", user_message, re.IGNORECASE)
 
             if odds_requested:
                 sport = "basketball_nba"  # Default sport; you can extract this from the user message
@@ -461,7 +461,7 @@ def gemini_view(request, players=None, player_name=None):
                 response = chat_session.send_message(user_message)
 
                 # Combine the odds table with the Gemini response
-                combined_response = f"<h3>Current NBA Odds:</h3>{table_html}<br><h3>Response to your question:</h3><p>{response.text}</p>"
+                combined_response = f"<h3>Current NBA Odds:</h3>{table_html}<br><p>{response.text}</p>"
 
                 return JsonResponse({"response": combined_response})
 
@@ -624,17 +624,23 @@ def gemini_view(request, players=None, player_name=None):
 
             # Check if the user is asking about a player's stats in natural language
             # Look for patterns like "What are [Player Name] stats" or "[Player Name] stats this year"
-            player_stats_match = re.search(r"(?:what\s+are\s+|what\'s\s+|show\s+me\s+|get\s+|)([A-Za-z]+(?:\s+[A-Za-z\.]+){1,3})(?:\s+stats|\s+statistics|\s+this\s+year|\s+this\s+season)", user_message, re.IGNORECASE)
+            player_stats_match = re.search(
+                r"(?:what\s+are\s+|what\'s\s+|show\s+me\s+|get\s+|)([A-Za-z]+(?:\s+[A-Za-z\.]+){1,3})(?:\s+stats|\s+statistics|\s+this\s+year|\s+this\s+season)",
+                user_message, re.IGNORECASE)
 
             # If the first pattern doesn't match, try alternative patterns
             if not player_stats_match:
                 # Look for patterns like "Tell me about [Player Name]'s stats" or "How is [Player Name] doing this season"
-                player_stats_match = re.search(r"(?:tell\s+me\s+about|how\s+is|how\'s|info\s+on|information\s+on)\s+([A-Za-z]+(?:\s+[A-Za-z\.]+){1,3})(?:\'s)?(?:\s+stats|\s+statistics|\s+this\s+year|\s+this\s+season|\s+doing|\s+playing)", user_message, re.IGNORECASE)
+                player_stats_match = re.search(
+                    r"(?:tell\s+me\s+about|how\s+is|how\'s|info\s+on|information\s+on)\s+([A-Za-z]+(?:\s+[A-Za-z\.]+){1,3})(?:\'s)?(?:\s+stats|\s+statistics|\s+this\s+year|\s+this\s+season|\s+doing|\s+playing)",
+                    user_message, re.IGNORECASE)
 
             # If still no match, try a more general pattern to catch any mention of a player and stats
             if not player_stats_match:
                 # This pattern looks for any mention of "stats" or related terms and tries to find a name-like pattern nearby
-                player_stats_match = re.search(r"(?:stats|statistics|numbers|performance|record).*?([A-Za-z]+(?:\s+[A-Za-z\.]+){1,3})|([A-Za-z]+(?:\s+[A-Za-z\.]+){1,3}).*?(?:stats|statistics|numbers|performance|record)", user_message, re.IGNORECASE)
+                player_stats_match = re.search(
+                    r"(?:stats|statistics|numbers|performance|record).*?([A-Za-z]+(?:\s+[A-Za-z\.]+){1,3})|([A-Za-z]+(?:\s+[A-Za-z\.]+){1,3}).*?(?:stats|statistics|numbers|performance|record)",
+                    user_message, re.IGNORECASE)
 
             if player_stats_match:
                 # Handle the case where we have multiple capturing groups (from the OR pattern)
@@ -702,7 +708,8 @@ def gemini_view(request, players=None, player_name=None):
 
                             return JsonResponse({"response": player_html})
                         else:
-                            return JsonResponse({"response": f"Could not fetch stats for player {potential_player_name}."})
+                            return JsonResponse(
+                                {"response": f"Could not fetch stats for player {potential_player_name}."})
                     else:
                         # If multiple players found, show a list to choose from
                         player_html = "<h3>Multiple players found. Please select one:</h3>"
