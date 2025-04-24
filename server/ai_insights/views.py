@@ -86,7 +86,9 @@ def fetch_player_insights(request):
             response = chat_session.send_message(prompt)
             analysis_text = response.text
 
-            # Step 4: Format response
+            # Step 4: Format response with HTML
+            formatted_analysis = format_analysis_as_html(analysis_text)
+
             return JsonResponse(
                 {
                     "status": "success",
@@ -99,7 +101,7 @@ def fetch_player_insights(request):
                     },
                     "recent_games": stats_data,
                     "best_odds": find_best_odds(current_odds),
-                    "analysis": analysis_text,
+                    "analysis": formatted_analysis,
                     "timestamp": datetime.now().isoformat(),
                 }
             )
@@ -213,6 +215,60 @@ def format_player_html(player_info):
         player_html += f"<p>{player_info['stats']}</p>"
 
     return player_html
+
+
+def format_analysis_as_html(analysis_text):
+    """
+    Format the analysis text as HTML with tables for better readability
+    """
+    if not analysis_text:
+        return "<p>No analysis available</p>"
+
+    # Split the text into sections based on newlines
+    sections = analysis_text.split('\n\n')
+    formatted_html = ""
+
+    for section in sections:
+        # Check if this section looks like it could be a table
+        if ':' in section and any(keyword in section.lower() for keyword in ['recommendation', 'confidence', 'rating', 'odds', 'value']):
+            # This might be a good candidate for a table
+            lines = [line.strip() for line in section.split('\n') if line.strip()]
+
+            if len(lines) >= 3:  # Need at least a header and some data rows
+                # Create a table
+                formatted_html += "<table border='1' style='border-collapse: collapse; width: 100%; text-align: left; margin: 10px 0;'>"
+
+                # Check if first line looks like a header
+                if not ':' in lines[0]:
+                    # Use the first line as a table caption/header
+                    formatted_html += f"<caption style='font-weight: bold; text-align: left; padding: 5px;'>{lines[0]}</caption>"
+                    lines = lines[1:]
+
+                # Process each line that has a colon as a row
+                for line in lines:
+                    if ':' in line:
+                        key, value = line.split(':', 1)
+                        formatted_html += f"<tr><td style='padding: 5px; font-weight: bold;'>{key.strip()}</td><td style='padding: 5px;'>{value.strip()}</td></tr>"
+                    else:
+                        # If no colon, use as a full-width row
+                        formatted_html += f"<tr><td colspan='2' style='padding: 5px;'>{line}</td></tr>"
+
+                formatted_html += "</table>"
+            else:
+                # Not enough lines for a table, format as a section with bold header
+                formatted_html += f"<p><strong>{section}</strong></p>"
+        else:
+            # Format as regular paragraph or section
+            if section.strip():
+                # Check if this looks like a header (short line, no punctuation at end)
+                if len(section) < 50 and not section.strip()[-1] in '.,:;?!':
+                    formatted_html += f"<h4>{section}</h4>"
+                else:
+                    # Replace newlines with <br> tags
+                    section_with_breaks = section.replace('\n', '<br>')
+                    formatted_html += f"<p>{section_with_breaks}</p>"
+
+    return formatted_html
 
 
 def fetch_odds_data(sport):
