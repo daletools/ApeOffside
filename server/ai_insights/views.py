@@ -8,8 +8,14 @@ import google.generativeai as genai
 from django.conf import settings
 from server.settings import GEMINI_KEY
 import re
+from datetime import datetime
+from nba_api.stats.endpoints import (
+    playercareerstats,
+    playergamelog
+)
+from nba_api.stats.static import players
+import pandas as pd
 from decouple import config
-
 from balldontlie import BalldontlieAPI
 
 api = BalldontlieAPI(api_key=config('BALLDONTLIE_API_KEY'))
@@ -63,6 +69,146 @@ def fetch_player_season_stats(player_id):
         print(f"Error fetching player season stats: {str(e)}")
         return None
 
+@csrf_exempt
+def fetch_player_insights(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            player_name = data['playerName']
+            current_odds = data['currentOdds']
+            game_context = data['gameContext']
+
+            # Step 1: Get player stats from NBA API
+            from nba_api.stats.static import players
+            from nba_api.stats.endpoints import playergamelog, commonplayerinfo
+
+            # Find player ID
+            nba_player = players.find_players_by_full_name(player_name)
+            if not nba_player:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f'Player {player_name} not found in NBA database'
+                }, status=404)
+
+            player_id = nba_player[0]['id']
+
+            # Get player info and recent games
+            player_info = commonplayerinfo.CommonPlayerInfo(player_id=player_id)
+            game_log = playergamelog.PlayerGameLog(
+                player_id=player_id,
+                season='2024-25'  # Update with current season
+            )
+
+            # Extract relevant stats
+            info_data = player_info.get_normalized_dict()
+            stats_data = game_log.get_normalized_dict()['PlayerGameLog'][:5]  # Last 5 games
+
+            # Step 2: Prepare Gemini prompt
+            prompt = f"""
+            **Advanced Player Betting Analysis**
+            You must give an analysis of the best Over/Under bets from those provided.
+
+            === Game Context ===
+            {game_context['homeTeam']} vs {game_context['awayTeam']}
+            Time: {game_context['gameTime']}
+
+            === Player Profile ===
+            Name: {player_name}
+            Position: {info_data['CommonPlayerInfo'][0]['POSITION']}
+            Team: {info_data['CommonPlayerInfo'][0]['TEAM_NAME']}
+
+            === Recent Performance (Last 5 Games) ===
+            {format_game_log(stats_data)}
+
+            === Current Betting Odds ===
+            {format_odds(current_odds)}
+
+            === Analysis Tasks ===
+            1. Evaluate matchup considering player position vs opponent defense
+            2. Compare recent performance to betting lines
+            3. Identify best value across books
+            4. Provide 3 specific recommendations with confidence levels
+            5. Highlight any injury/rotation risks
+
+            **Response Format:**
+            - Summary of key observations
+            - Top betting recommendations
+            - Confidence ratings (1-5 stars)
+            - Risk assessment
+            """
+
+            # Step 3: Query Gemini
+            response = chat_session.send_message(prompt)
+            analysis_text = response.text
+
+            # Step 4: Format response
+            return JsonResponse({
+                'status': 'success',
+                'player': player_name,
+                'player_info': {
+                    'position': info_data['CommonPlayerInfo'][0]['POSITION'],
+                    'team': info_data['CommonPlayerInfo'][0]['TEAM_NAME'],
+                    'height': info_data['CommonPlayerInfo'][0]['HEIGHT'],
+                    'weight': info_data['CommonPlayerInfo'][0]['WEIGHT']
+                },
+                'recent_games': stats_data,
+                'best_odds': find_best_odds(current_odds),
+                'analysis': analysis_text,
+                'timestamp': datetime.now().isoformat()
+            })
+
+        except Exception as e:
+            print(f"Error in fetch_player_insights: {str(e)}")
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=500)
+
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Only POST requests are allowed'
+    }, status=405)
+
+# Helper function to format odds
+def format_odds(odds_data):
+    return "\n".join(
+        f"{bookmaker}: Over {values['Over']['point']} @ {values['Over']['price']} | "
+        f"Under @ {values['Under']['price']}"
+        for bookmaker, values in odds_data.items()
+    )
+
+def format_game_log(games):
+    return "\n".join(
+        f"{game['GAME_DATE']}: {game['PTS']} PTS, {game['AST']} AST, {game['REB']} REB, "
+        f"{game['FG_PCT'] * 100:.1f}% FG"
+        for game in games
+    )
+
+def find_best_odds(odds_data):
+    """Helper function to identify the best available odds"""
+    best = {
+        'Over': {'price': 0, 'book': None, 'point': None},
+        'Under': {'price': 0, 'book': None, 'point': None}
+    }
+
+    for book, values in odds_data.items():
+        # For Over bets we want highest price (decimal odds)
+        if values['Over']['price'] > best['Over']['price']:
+            best['Over'] = {
+                'price': values['Over']['price'],
+                'book': book,
+                'point': values['Over']['point']
+            }
+
+        # For Under bets we want highest price
+        if values['Under']['price'] > best['Under']['price']:
+            best['Under'] = {
+                'price': values['Under']['price'],
+                'book': book,
+                'point': values['Under']['point']
+            }
+
+    return best
 
 def fetch_player_game_stats(player_id):
     try:

@@ -1,38 +1,70 @@
-import {useState, useEffect, useRef, useImperativeHandle, forwardRef} from "react";
-import {fetchChatResponse} from "../../services/api.jsx";
+import React, {
+    useState,
+    useRef,
+    forwardRef,
+    useImperativeHandle,
+    useEffect
+} from 'react';
+import { fetchChatResponse, fetchInsightsAPI } from "../../services/api.jsx";
+
 import "../../Gemini.css";
 
-const Gemini = (data) => {
+const Gemini = forwardRef((props, ref) => {
     const [messages, setMessages] = useState([]);
-    const [input, setInput] = useState(""); // State for user input
-    const [isChatOpen, setIsChatOpen] = useState(false); // State to toggle chat visibility
-    const [prompts, setPrompts] = useState([]); // State for premade prompts
-    const [isLoading, setIsLoading] = useState(false); // State for loading indicator
+    const [input, setInput] = useState("");
+    const [isChatOpen, setIsChatOpen] = useState(false);
+    const [prompts, setPrompts] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
     const textareaRef = useRef(null); // Ref for the textarea element
 
-    useEffect(() => {
-        console.log("Gemini received:", data);
-        if (!data) return;
+    // Function exposed to parent component via ref
+    const analyzePlayer = async (playerData) => {
+        if (!playerData) return;
 
-        let analysis = data.data || {};
+        // Add user message to chat
+        setMessages(prev => [...prev, {
+            sender: 'user',
+            text: `I'd like insights on ${playerData.playerName}'s odds for this game.`,
+            timestamp: new Date()
+        }]);
 
-        if (analysis.type === 'player_analysis_request') {
+        setIsChatOpen(true);
+        setIsLoading(true);
 
-            let response = JSON.stringify(analysis.data);
+        try {
+            const response = await fetchInsightsAPI(playerData);
+            const analysisText = response.data?.analysis ||
+                response.analysis ||
+                "No analysis available";
 
             setMessages(prev => [...prev, {
                 sender: 'bot',
-                text: response,
+                text: analysisText,
                 timestamp: new Date()
             }]);
-            setIsChatOpen(true);
-        }
-    }, [data]);
+        } catch (error) {
+            console.error("Error fetching insights:", error);
+            setMessages(prev => [...prev, {
+                sender: 'bot',
+                text: "Sorry, I couldn't analyze those odds. Please try again later.",
+                timestamp: new Date()
+            }]);
+        } finally {
+            setIsLoading(false);
 
+        }
+    };
+
+    // Make analyzePlayer available to parent component
+    useImperativeHandle(ref, () => ({
+        analyzePlayer
+    }));
+
+    // Auto-scroll to bottom when messages change
     useEffect(() => {
         if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({behavior: "smooth"});
+            messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
         }
     }, [messages]);
 
@@ -77,45 +109,37 @@ const Gemini = (data) => {
         // Find the prompt text to display in the chat
         const selectedPrompt = prompts.find(p => p.id === promptType);
         if (selectedPrompt) {
-            setMessages(prev => [...prev, {sender: "user", text: selectedPrompt.text}]);
+            setMessages(prev => [...prev, { sender: "user", text: selectedPrompt.text }]);
         }
 
         try {
             const response = await fetchChatResponse('', promptType);
 
-            // Check if response contains new prompts (for nested prompts)
             if (response.prompts) {
                 setPrompts(response.prompts);
-                setMessages(prev => [...prev, {sender: "bot", text: response.response}]);
+                setMessages(prev => [...prev, { sender: "bot", text: response.response }]);
             } else if (response.data) {
-                // For responses with HTML data (like tables)
                 setMessages(prev => [...prev, {
-                    sender: "bot", 
+                    sender: "bot",
                     text: response.response + (response.data ? response.data : '')
                 }]);
-                // Clear prompts after selection
                 setPrompts([]);
             } else if (response.info) {
-                // For responses with additional info
                 setMessages(prev => [
-                    ...prev, 
-                    {sender: "bot", text: response.response},
-                    {sender: "bot", text: response.info}
+                    ...prev,
+                    { sender: "bot", text: response.response },
+                    { sender: "bot", text: response.info }
                 ]);
-                // Clear prompts after selection
                 setPrompts([]);
             } else {
-                // Standard text response
-                setMessages(prev => [...prev, {sender: "bot", text: response.response}]);
-                // Clear prompts after selection
+                setMessages(prev => [...prev, { sender: "bot", text: response.response }]);
                 setPrompts([]);
             }
         } catch (error) {
             setMessages(prev => [
                 ...prev,
-                {sender: "bot", text: "An error occurred while processing your request."}
+                { sender: "bot", text: "An error occurred while processing your request." }
             ]);
-            // Clear prompts on error
             setPrompts([]);
         } finally {
             setIsLoading(false);
@@ -144,7 +168,7 @@ const Gemini = (data) => {
         if (input.trim() === "") return;
 
         const userMessage = input.trim();
-        setMessages((prev) => [...prev, {sender: "user", text: userMessage}]);
+        setMessages((prev) => [...prev, { sender: "user", text: userMessage }]);
         setInput("");
         // Reset textarea height
         if (textareaRef.current) {
@@ -155,44 +179,37 @@ const Gemini = (data) => {
         try {
             const response = await fetchChatResponse(userMessage);
 
-            // Check if response contains new prompts
             if (response.prompts) {
                 setPrompts(response.prompts);
-                setMessages(prev => [...prev, {sender: "bot", text: response.response}]);
+                setMessages(prev => [...prev, { sender: "bot", text: response.response }]);
             } else if (response.data) {
-                // For responses with HTML data (like tables)
                 setMessages(prev => [...prev, {
-                    sender: "bot", 
+                    sender: "bot",
                     text: response.response + (response.data ? response.data : '')
                 }]);
-                // Clear prompts after selection
                 setPrompts([]);
             } else if (Array.isArray(response.response)) {
                 const formattedResponse = response.response.map((item, index) => (
                     `${index + 1}. ${item.home_team} vs ${item.away_team} - Odds: ${JSON.stringify(item.odds)}`
                 )).join("\n");
-                setMessages((prev) => [...prev, {sender: "bot", text: formattedResponse}]);
-                // Clear prompts after response
+                setMessages((prev) => [...prev, { sender: "bot", text: formattedResponse }]);
                 setPrompts([]);
             } else if (typeof response.response === "object") {
                 setMessages((prev) => [
                     ...prev,
-                    {sender: "bot", text: "Here are the details:"},
-                    {sender: "bot", text: JSON.stringify(response.response, null, 2)},
+                    { sender: "bot", text: "Here are the details:" },
+                    { sender: "bot", text: JSON.stringify(response.response, null, 2) },
                 ]);
-                // Clear prompts after response
                 setPrompts([]);
             } else {
-                setMessages((prev) => [...prev, {sender: "bot", text: response.response}]);
-                // Clear prompts after response
+                setMessages((prev) => [...prev, { sender: "bot", text: response.response }]);
                 setPrompts([]);
             }
         } catch (error) {
             setMessages((prev) => [
                 ...prev,
-                {sender: "bot", text: "An error occurred while fetching the response."},
+                { sender: "bot", text: "An error occurred while fetching the response." },
             ]);
-            // Clear prompts on error
             setPrompts([]);
         } finally {
             setIsLoading(false);
@@ -244,7 +261,7 @@ const Gemini = (data) => {
                             <div key={idx} className={msg.sender === "user" ? "user-message" : "bot-message"}>
                                 <strong>{msg.sender === "user" ? "You: " : "Bot: "}</strong>
                                 {msg.sender === "bot" && (msg.text.includes("<") && msg.text.includes(">"))
-                                    ? <div dangerouslySetInnerHTML={{__html: msg.text}}/>
+                                    ? <div dangerouslySetInnerHTML={{ __html: msg.text }}/>
                                     : msg.text}
                             </div>
                         ))}
@@ -258,7 +275,7 @@ const Gemini = (data) => {
                             </div>
                         )}
 
-                        {/* Premade prompts - show whenever available */}
+                        {/* Premade prompts */}
                         {prompts.length > 0 && (
                             <div className="prompt-buttons">
                                 <p><strong>Quick options:</strong></p>
@@ -295,6 +312,6 @@ const Gemini = (data) => {
             )}
         </>
     );
-};
+});
 
 export default Gemini;
