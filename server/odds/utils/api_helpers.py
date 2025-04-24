@@ -3,6 +3,7 @@ from django.conf import settings
 
 ODDS_BASE_URL = "https://api.the-odds-api.com"
 
+
 def fetch_player_prop_odds(sport, market_key, limit=5):
     """
     Fetches player prop odds using the per-event Odds API endpoint.
@@ -30,7 +31,7 @@ def fetch_player_prop_odds(sport, market_key, limit=5):
                 "apiKey": settings.API_KEY,
                 "markets": market_key,
                 "regions": "us",
-                "oddsFormat": "decimal"
+                "oddsFormat": "decimal",
             }
             event_response = requests.get(odds_url, params=odds_params)
             if event_response.status_code != 200:
@@ -42,7 +43,9 @@ def fetch_player_prop_odds(sport, market_key, limit=5):
 
             # Inject the site link per bookmaker
             for bookmaker in event_data.get("bookmakers", []):
-                bookmaker["site"] = bookmaker.get("site", None)  # Typically already provided
+                bookmaker["site"] = bookmaker.get(
+                    "site", None
+                )  # Typically already provided
 
             all_odds.append(event_data)
 

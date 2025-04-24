@@ -15,12 +15,14 @@ else:
 
     for event in events[:10]:  # Check first 10 events
         event_id = event["id"]
-        odds_url = f"https://api.the-odds-api.com/v4/sports/{SPORT}/events/{event_id}/odds/"
+        odds_url = (
+            f"https://api.the-odds-api.com/v4/sports/{SPORT}/events/{event_id}/odds/"
+        )
         odds_params = {
             "apiKey": API_KEY,
             "markets": MARKET,
             "regions": "us",
-            "oddsFormat": "decimal"
+            "oddsFormat": "decimal",
         }
 
         odds_response = requests.get(odds_url, params=odds_params)
@@ -31,6 +33,8 @@ else:
                 print(data)
                 break  # stop after the first one found
             else:
-                print(f"🔍 No player props for {event['home_team']} vs {event['away_team']}")
+                print(
+                    f"🔍 No player props for {event['home_team']} vs {event['away_team']}"
+                )
         else:
             print(f"❌ Failed to fetch odds for {event['id']}: {odds_response.text}")
