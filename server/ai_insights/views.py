@@ -306,9 +306,48 @@ def fetch_player_stats(player_id, stats_type='season'):
         return fetch_player_season_stats(player_id)
 
 
-# # Path to context file (adjust as needed)
-# CONTEXT_FILE = os.path.join(os.path.dirname(__file__), "context_data", "faq.txt")
-# summarizer = pipeline("summarization", model="facebook/bart-large-cnn", max_length=1)
+def format_player_html(player_info):
+    """Helper function to format player information as HTML"""
+    player_html = f"<h3>{player_info['name']}</h3>"
+    player_html += f"<p>Position: {player_info['position']}<br>"
+    player_html += f"Team: {player_info['team']}<br>"
+    player_html += f"Height: {player_info['height']}<br>"
+    player_html += f"Weight: {player_info['weight']}<br>"
+    player_html += f"Jersey: {player_info['jersey_number']}</p>"
+
+    if isinstance(player_info['stats'], dict):
+        if player_info['stats']['type'] == 'season':
+            # Display season stats
+            player_html += "<h4>2024-2025 Season Stats</h4>"
+            player_html += "<table border='1' style='border-collapse: collapse; width: 100%; text-align: left;'>"
+            player_html += "<tr><th>Stat</th><th>Value</th></tr>"
+            player_html += f"<tr><td>Games Played</td><td>{player_info['stats']['games_played']}</td></tr>"
+            player_html += f"<tr><td>Points</td><td>{player_info['stats']['points']}</td></tr>"
+            player_html += f"<tr><td>Rebounds</td><td>{player_info['stats']['rebounds']}</td></tr>"
+            player_html += f"<tr><td>Assists</td><td>{player_info['stats']['assists']}</td></tr>"
+            player_html += f"<tr><td>Steals</td><td>{player_info['stats']['steals']}</td></tr>"
+            player_html += f"<tr><td>Blocks</td><td>{player_info['stats']['blocks']}</td></tr>"
+            player_html += f"<tr><td>Minutes</td><td>{player_info['stats']['minutes']}</td></tr>"
+            player_html += f"<tr><td>FG%</td><td>{player_info['stats']['fg_percentage']}</td></tr>"
+            player_html += f"<tr><td>3PT%</td><td>{player_info['stats']['three_pt_percentage']}</td></tr>"
+            player_html += f"<tr><td>FT%</td><td>{player_info['stats']['ft_percentage']}</td></tr>"
+            player_html += "</table>"
+        elif player_info['stats']['type'] == 'game':
+            # Display game stats
+            player_html += "<h4>Recent Game Stats</h4>"
+            player_html += "<table border='1' style='border-collapse: collapse; width: 100%; text-align: left;'>"
+            player_html += "<tr><th>Date</th><th>Opponent</th><th>Points</th><th>Rebounds</th><th>Assists</th><th>Minutes</th></tr>"
+
+            for game in player_info['stats']['games']:
+                player_html += f"<tr><td>{game['date']}</td><td>{game['opponent']}</td><td>{game['points']}</td><td>{game['rebounds']}</td><td>{game['assists']}</td><td>{game['minutes']}</td></tr>"
+
+            player_html += "</table>"
+    else:
+        player_html += f"<p>{player_info['stats']}</p>"
+
+    return player_html
+
+
 
 
 def fetch_odds_data(sport):
@@ -329,7 +368,6 @@ def fetch_odds_data(sport):
         return {"error": f"An error occurred: {str(e)}"}
 
 
-# system_context = load_context()
 
 # Configure the GenAI API key
 genai.configure(api_key=GEMINI_KEY)
@@ -438,7 +476,7 @@ def gemini_view(request, players=None, player_name=None):
 
             # Handle regular text messages
             # Check if the user is asking about odds
-            odds_requested = re.search(r"\bodd\b", user_message, re.IGNORECASE)
+            odds_requested = re.search(r"\bodds\b", user_message, re.IGNORECASE)
 
             if odds_requested:
                 sport = "basketball_nba"  # Default sport; you can extract this from the user message
@@ -461,7 +499,7 @@ def gemini_view(request, players=None, player_name=None):
                 response = chat_session.send_message(user_message)
 
                 # Combine the odds table with the Gemini response
-                combined_response = f"<h3>Current NBA Odds:</h3>{table_html}<br><h3>Response to your question:</h3><p>{response.text}</p>"
+                combined_response = f"<h4>Current NBA Odds:</h4>{table_html}<br><p>{response.text}</p>"
 
                 return JsonResponse({"response": combined_response})
 
@@ -493,43 +531,8 @@ def gemini_view(request, players=None, player_name=None):
                         player_info = fetch_player_stats(player_id, stats_type)
 
                         if player_info:
-                            # Initialize HTML output
-                            player_html = f"<h3>{player_info['name']}</h3>"
-                            player_html += f"<p>Position: {player_info['position']}<br>"
-                            player_html += f"Team: {player_info['team']}<br>"
-                            player_html += f"Height: {player_info['height']}<br>"
-                            player_html += f"Weight: {player_info['weight']}<br>"
-                            player_html += f"Jersey: {player_info['jersey_number']}</p>"
-
-                            if isinstance(player_info['stats'], dict):
-                                if player_info['stats']['type'] == 'season':
-                                    # Display season stats
-                                    player_html += "<h4>2024-2025 Season Stats</h4>"
-                                    player_html += "<table border='1' style='border-collapse: collapse; width: 100%; text-align: left;'>"
-                                    player_html += "<tr><th>Stat</th><th>Value</th></tr>"
-                                    player_html += f"<tr><td>Games Played</td><td>{player_info['stats']['games_played']}</td></tr>"
-                                    player_html += f"<tr><td>Points</td><td>{player_info['stats']['points']}</td></tr>"
-                                    player_html += f"<tr><td>Rebounds</td><td>{player_info['stats']['rebounds']}</td></tr>"
-                                    player_html += f"<tr><td>Assists</td><td>{player_info['stats']['assists']}</td></tr>"
-                                    player_html += f"<tr><td>Steals</td><td>{player_info['stats']['steals']}</td></tr>"
-                                    player_html += f"<tr><td>Blocks</td><td>{player_info['stats']['blocks']}</td></tr>"
-                                    player_html += f"<tr><td>Minutes</td><td>{player_info['stats']['minutes']}</td></tr>"
-                                    player_html += f"<tr><td>FG%</td><td>{player_info['stats']['fg_percentage']}</td></tr>"
-                                    player_html += f"<tr><td>3PT%</td><td>{player_info['stats']['three_pt_percentage']}</td></tr>"
-                                    player_html += f"<tr><td>FT%</td><td>{player_info['stats']['ft_percentage']}</td></tr>"
-                                    player_html += "</table>"
-                                elif player_info['stats']['type'] == 'game':
-                                    # Display game stats
-                                    player_html += "<h4>Recent Game Stats</h4>"
-                                    player_html += "<table border='1' style='border-collapse: collapse; width: 100%; text-align: left;'>"
-                                    player_html += "<tr><th>Date</th><th>Opponent</th><th>Points</th><th>Rebounds</th><th>Assists</th><th>Minutes</th></tr>"
-
-                                    for game in player_info['stats']['games']:
-                                        player_html += f"<tr><td>{game['date']}</td><td>{game['opponent']}</td><td>{game['points']}</td><td>{game['rebounds']}</td><td>{game['assists']}</td><td>{game['minutes']}</td></tr>"
-
-                                    player_html += "</table>"
-                            else:
-                                player_html += f"<p>{player_info['stats']}</p>"
+                            # Format player info as HTML using helper function
+                            player_html = format_player_html(player_info)
 
                             return JsonResponse({"response": player_html})
                         else:
@@ -557,84 +560,36 @@ def gemini_view(request, players=None, player_name=None):
                 if hasattr(request, 'session') and request.session and 'stats_type' in request.session:
                     stats_type = request.session['stats_type']
 
-                if players and len(players) > 0:
-                    if len(players) == 1:
-                        # If only one player found, show their stats
-                        player_id = players[0]['id']
+                # Fetch player stats directly by ID
+                player_info = fetch_player_stats(player_id, stats_type)
 
-                        # Get stats type from session if available
-                        stats_type = 'season'  # Default to season stats
-                        if hasattr(request, 'session') and request.session and 'stats_type' in request.session:
-                            stats_type = request.session['stats_type']
+                if player_info:
+                    # Format player info as HTML using helper function
+                    player_html = format_player_html(player_info)
 
-                        player_info = fetch_player_stats(player_id, stats_type)
-
-                        if player_info:
-                            # Format player info as HTML (same as above)
-                            player_html = f"<h3>{player_info['name']}</h3>"
-                            player_html += f"<p>Position: {player_info['position']}<br>"
-                            player_html += f"Team: {player_info['team']}<br>"
-                            player_html += f"Height: {player_info['height']}<br>"
-                            player_html += f"Weight: {player_info['weight']}<br>"
-                            player_html += f"Jersey: {player_info['jersey_number']}</p>"
-
-                            if isinstance(player_info['stats'], dict):
-                                if player_info['stats']['type'] == 'season':
-                                    # Display season stats
-                                    player_html += "<h4>2024-2025 Season Stats</h4>"
-                                    player_html += "<table border='1' style='border-collapse: collapse; width: 100%; text-align: left;'>"
-                                    player_html += "<tr><th>Stat</th><th>Value</th></tr>"
-                                    player_html += f"<tr><td>Games Played</td><td>{player_info['stats']['games_played']}</td></tr>"
-                                    player_html += f"<tr><td>Points</td><td>{player_info['stats']['points']}</td></tr>"
-                                    player_html += f"<tr><td>Rebounds</td><td>{player_info['stats']['rebounds']}</td></tr>"
-                                    player_html += f"<tr><td>Assists</td><td>{player_info['stats']['assists']}</td></tr>"
-                                    player_html += f"<tr><td>Steals</td><td>{player_info['stats']['steals']}</td></tr>"
-                                    player_html += f"<tr><td>Blocks</td><td>{player_info['stats']['blocks']}</td></tr>"
-                                    player_html += f"<tr><td>Minutes</td><td>{player_info['stats']['minutes']}</td></tr>"
-                                    player_html += f"<tr><td>FG%</td><td>{player_info['stats']['fg_percentage']}</td></tr>"
-                                    player_html += f"<tr><td>3PT%</td><td>{player_info['stats']['three_pt_percentage']}</td></tr>"
-                                    player_html += f"<tr><td>FT%</td><td>{player_info['stats']['ft_percentage']}</td></tr>"
-                                    player_html += "</table>"
-                                elif player_info['stats']['type'] == 'game':
-                                    # Display game stats
-                                    player_html += "<h4>Recent Game Stats</h4>"
-                                    player_html += "<table border='1' style='border-collapse: collapse; width: 100%; text-align: left;'>"
-                                    player_html += "<tr><th>Date</th><th>Opponent</th><th>Points</th><th>Rebounds</th><th>Assists</th><th>Minutes</th></tr>"
-
-                                    for game in player_info['stats']['games']:
-                                        player_html += f"<tr><td>{game['date']}</td><td>{game['opponent']}</td><td>{game['points']}</td><td>{game['rebounds']}</td><td>{game['assists']}</td><td>{game['minutes']}</td></tr>"
-
-                                    player_html += "</table>"
-                            else:
-                                player_html += f"<p>{player_info['stats']}</p>"
-
-                            return JsonResponse({"response": player_html})
-                    else:
-                        # If multiple players found, show a list to choose from
-                        player_html = "<h3>Multiple players found. Please select one:</h3>"
-                        player_html += "<ul>"
-                        for player in players:
-                            player_html += f"<li><a href='#' onclick='selectPlayer({player['id']})' style='color: blue; text-decoration: underline; cursor: pointer;'>{player['name']} ({player['team']}, {player['position']})</a></li>"
-                        player_html += "</ul>"
-                        player_html += "<script>function selectPlayer(id) { document.getElementById('chat-input').value = 'player ' + id; document.getElementById('send-button').click(); }</script>"
-
-                        return JsonResponse({"response": player_html})
+                    return JsonResponse({"response": player_html})
                 else:
-                    return JsonResponse({"response": f"Could not find any players matching '{player_name}'."})
+                    return JsonResponse({"response": f"Could not fetch stats for player ID {player_id}."})
 
             # Check if the user is asking about a player's stats in natural language
             # Look for patterns like "What are [Player Name] stats" or "[Player Name] stats this year"
-            player_stats_match = re.search(r"(?:what\s+are\s+|what\'s\s+|show\s+me\s+|get\s+|)([A-Za-z]+(?:\s+[A-Za-z\.]+){1,3})(?:\s+stats|\s+statistics|\s+this\s+year|\s+this\s+season)", user_message, re.IGNORECASE)
+            player_stats_match = re.search(
+                r"(?:what\s+are\s+|what\'s\s+|show\s+me\s+|get\s+|)([A-Za-z]+(?:\s+[A-Za-z\.]+){1,3})(?:\s+stats|\s+statistics|\s+this\s+year|\s+this\s+season)",
+                user_message, re.IGNORECASE)
 
             # If the first pattern doesn't match, try alternative patterns
             if not player_stats_match:
                 # Look for patterns like "Tell me about [Player Name]'s stats" or "How is [Player Name] doing this season"
-                player_stats_match = re.search(r"(?:tell\s+me\s+about|how\s+is|how\'s|info\s+on|information\s+on)\s+([A-Za-z]+(?:\s+[A-Za-z\.]+){1,3})(?:\'s)?(?:\s+stats|\s+statistics|\s+this\s+year|\s+this\s+season|\s+doing|\s+playing)", user_message, re.IGNORECASE)
+                player_stats_match = re.search(
+                    r"(?:tell\s+me\s+about|how\s+is|how\'s|info\s+on|information\s+on)\s+([A-Za-z]+(?:\s+[A-Za-z\.]+){1,3})(?:\'s)?(?:\s+stats|\s+statistics|\s+this\s+year|\s+this\s+season|\s+doing|\s+playing)",
+                    user_message, re.IGNORECASE)
 
             # If still no match, try a more general pattern to catch any mention of a player and stats
             if not player_stats_match:
                 # This pattern looks for any mention of "stats" or related terms and tries to find a name-like pattern nearby
-                player_stats_match = re.search(r"(?:stats|statistics|numbers|performance|record).*?([A-Za-z]+(?:\s+[A-Za-z\.]+){1,3})|([A-Za-z]+(?:\s+[A-Za-z\.]+){1,3}).*?(?:stats|statistics|numbers|performance|record)", user_message, re.IGNORECASE)
+                player_stats_match = re.search(
+                    r"(?:stats|statistics|numbers|performance|record).*?([A-Za-z]+(?:\s+[A-Za-z\.]+){1,3})|([A-Za-z]+(?:\s+[A-Za-z\.]+){1,3}).*?(?:stats|statistics|numbers|performance|record)",
+                    user_message, re.IGNORECASE)
 
             if player_stats_match:
                 # Handle the case where we have multiple capturing groups (from the OR pattern)
@@ -662,47 +617,13 @@ def gemini_view(request, players=None, player_name=None):
                         player_info = fetch_player_stats(player_id, stats_type)
 
                         if player_info:
-                            # Format player info as HTML
-                            player_html = f"<h3>{player_info['name']}</h3>"
-                            player_html += f"<p>Position: {player_info['position']}<br>"
-                            player_html += f"Team: {player_info['team']}<br>"
-                            player_html += f"Height: {player_info['height']}<br>"
-                            player_html += f"Weight: {player_info['weight']}<br>"
-                            player_html += f"Jersey: {player_info['jersey_number']}</p>"
-
-                            if isinstance(player_info['stats'], dict):
-                                if player_info['stats']['type'] == 'season':
-                                    # Display season stats
-                                    player_html += "<h4>2024-2025 Season Stats</h4>"
-                                    player_html += "<table border='1' style='border-collapse: collapse; width: 100%; text-align: left;'>"
-                                    player_html += "<tr><th>Stat</th><th>Value</th></tr>"
-                                    player_html += f"<tr><td>Games Played</td><td>{player_info['stats']['games_played']}</td></tr>"
-                                    player_html += f"<tr><td>Points</td><td>{player_info['stats']['points']}</td></tr>"
-                                    player_html += f"<tr><td>Rebounds</td><td>{player_info['stats']['rebounds']}</td></tr>"
-                                    player_html += f"<tr><td>Assists</td><td>{player_info['stats']['assists']}</td></tr>"
-                                    player_html += f"<tr><td>Steals</td><td>{player_info['stats']['steals']}</td></tr>"
-                                    player_html += f"<tr><td>Blocks</td><td>{player_info['stats']['blocks']}</td></tr>"
-                                    player_html += f"<tr><td>Minutes</td><td>{player_info['stats']['minutes']}</td></tr>"
-                                    player_html += f"<tr><td>FG%</td><td>{player_info['stats']['fg_percentage']}</td></tr>"
-                                    player_html += f"<tr><td>3PT%</td><td>{player_info['stats']['three_pt_percentage']}</td></tr>"
-                                    player_html += f"<tr><td>FT%</td><td>{player_info['stats']['ft_percentage']}</td></tr>"
-                                    player_html += "</table>"
-                                elif player_info['stats']['type'] == 'game':
-                                    # Display game stats
-                                    player_html += "<h4>Recent Game Stats</h4>"
-                                    player_html += "<table border='1' style='border-collapse: collapse; width: 100%; text-align: left;'>"
-                                    player_html += "<tr><th>Date</th><th>Opponent</th><th>Points</th><th>Rebounds</th><th>Assists</th><th>Minutes</th></tr>"
-
-                                    for game in player_info['stats']['games']:
-                                        player_html += f"<tr><td>{game['date']}</td><td>{game['opponent']}</td><td>{game['points']}</td><td>{game['rebounds']}</td><td>{game['assists']}</td><td>{game['minutes']}</td></tr>"
-
-                                    player_html += "</table>"
-                            else:
-                                player_html += f"<p>{player_info['stats']}</p>"
+                            # Format player info as HTML using helper function
+                            player_html = format_player_html(player_info)
 
                             return JsonResponse({"response": player_html})
                         else:
-                            return JsonResponse({"response": f"Could not fetch stats for player {potential_player_name}."})
+                            return JsonResponse(
+                                {"response": f"Could not fetch stats for player {potential_player_name}."})
                     else:
                         # If multiple players found, show a list to choose from
                         player_html = "<h3>Multiple players found. Please select one:</h3>"

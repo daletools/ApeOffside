@@ -5,7 +5,7 @@
     bottom: 20px;
     right: 20px;
     width: 437.5px;
-    max-height: 625px;
+    max-height: 730px;
     background: #1e1e2f;
     border-radius: 18px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
@@ -167,7 +167,7 @@
     justify-content: center;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
     cursor: pointer;
-    font-size: 35px;
+    font-size: 25px;
     transition: all 0.3s ease;
     border: none;
 }
