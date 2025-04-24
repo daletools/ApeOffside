@@ -1,31 +1,32 @@
-import {useState, useEffect, useRef} from "react";
+import {useState, useEffect, useRef, useImperativeHandle, forwardRef} from "react";
 import {fetchChatResponse} from "../../services/api.jsx";
 import "../../Gemini.css";
 
-const Gemini = ({data}) => {
+const Gemini = (data) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState(""); // State for user input
     const [isChatOpen, setIsChatOpen] = useState(false); // State to toggle chat visibility
     const [prompts, setPrompts] = useState([]); // State for premade prompts
     const [isLoading, setIsLoading] = useState(false); // State for loading indicator
     const messagesEndRef = useRef(null);
+    const textareaRef = useRef(null); // Ref for the textarea element
 
     useEffect(() => {
-        if (data) {
-            const {playerName, trends} = data;
+        console.log("Gemini received:", data);
+        if (!data) return;
 
-            const insightsMessage = `
-                Betting Insights for ${playerName}:
-                ${Object.entries(trends || {})
-                .map(([bookmaker, trend]) => `
-                    ${bookmaker}:
-                      Over: ${trend.over?.direction || "N/A"} (${trend.over?.percentChange?.toFixed(2) || "N/A"}%)
-                      Under: ${trend.under?.direction || "N/A"} (${trend.under?.percentChange?.toFixed(2) || "N/A"}%)
-                    `)
-                .join("\n")}
-            `;
+        let analysis = data.data || {};
 
-            setMessages((prev) => [...prev, {sender: "bot", text: insightsMessage}]);
+        if (analysis.type === 'player_analysis_request') {
+
+            let response = JSON.stringify(analysis.data);
+
+            setMessages(prev => [...prev, {
+                sender: 'bot',
+                text: response,
+                timestamp: new Date()
+            }]);
+            setIsChatOpen(true);
         }
     }, [data]);
 
@@ -34,6 +35,14 @@ const Gemini = ({data}) => {
             messagesEndRef.current.scrollIntoView({behavior: "smooth"});
         }
     }, [messages]);
+
+    // Initialize textarea height when chat is opened
+    useEffect(() => {
+        if (isChatOpen && textareaRef.current) {
+            // Reset to default height
+            textareaRef.current.style.height = 'auto';
+        }
+    }, [isChatOpen]);
 
     // Fetch prompts when chat is opened
     useEffect(() => {
@@ -113,6 +122,23 @@ const Gemini = ({data}) => {
         }
     };
 
+    // Function to auto-resize the textarea
+    const autoResizeTextarea = () => {
+        if (textareaRef.current) {
+            // Reset height to auto to get the correct scrollHeight
+            textareaRef.current.style.height = 'auto';
+            // Set the height to the scrollHeight to expand the textarea
+            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+        }
+    };
+
+    // Handle input change and auto-resize
+    const handleInputChange = (e) => {
+        setInput(e.target.value);
+        // Call auto-resize after state update
+        setTimeout(autoResizeTextarea, 0);
+    };
+
     const handleSendMessage = async (event) => {
         event.preventDefault();
         if (input.trim() === "") return;
@@ -120,6 +146,10 @@ const Gemini = ({data}) => {
         const userMessage = input.trim();
         setMessages((prev) => [...prev, {sender: "user", text: userMessage}]);
         setInput("");
+        // Reset textarea height
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+        }
         setIsLoading(true);
 
         try {
@@ -167,6 +197,20 @@ const Gemini = ({data}) => {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handlePlayerInsights = async (data) => {
+        const response = `Analyzing ${data.playerName}...\n` +
+            `Current trends:\n${
+                Object.entries(data.trends).map(([bm, trend]) =>
+                    `${bm}: Over ${trend.over.direction} ${trend.over.percentChange.toFixed(1)}%`
+                ).join('\n')
+            }`;
+
+        setMessages(prev => [...prev, {
+            sender: 'bot',
+            text: response
+        }]);
     };
 
     return (
@@ -234,13 +278,14 @@ const Gemini = ({data}) => {
                         <div ref={messagesEndRef}></div>
                     </div>
                     <form className="chat-form" onSubmit={handleSendMessage}>
-                        <input
-                            type="text"
+                        <textarea
+                            ref={textareaRef}
                             className="chat-input"
                             value={input}
-                            onChange={(e) => setInput(e.target.value)}
+                            onChange={handleInputChange}
                             placeholder="Type your message..."
                             disabled={isLoading}
+                            rows="1"
                         />
                         <button type="submit" className="send-button" disabled={isLoading}>
                             Send
