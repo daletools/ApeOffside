@@ -1,15 +1,14 @@
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
-from django.http import JsonResponse
-from django.conf import settings
-import requests
 import json
+
+import requests
+from django.conf import settings
+from django.http import JsonResponse
 
 from odds.arbitrage.utils import find_arbitrage
 from .player_props import player_prop_arbitrage
 
-
 ODDS_BASE_URL = "https://api.the-odds-api.com"
+
 
 def player_prop_arbitrage_opportunities(request):
     opportunities, error = player_prop_arbitrage()
@@ -20,43 +19,43 @@ def player_prop_arbitrage_opportunities(request):
     return JsonResponse(opportunities, safe=False)
 
 
-#REAL ODDS -> Finds arbitrage opportunities from the Odds API
+# REAL ODDS -> Finds arbitrage opportunities from the Odds API
 def arbitrage_opportunities(request):
     sport = "basketball_nba"
 
     url = f"{ODDS_BASE_URL}/v4/sports/{sport}/odds/"
     params = {
         "apiKey": settings.API_KEY,
-        "regions": "us",               # U.S.-based sportsbooks only
+        "regions": "us",  # U.S.-based sportsbooks only
         "markets": "h2h",
-        "oddsFormat": "decimal"
+        "oddsFormat": "decimal",
     }
 
     try:
         response = requests.get(url, params=params)
         if response.status_code != 200:
-            return JsonResponse({
-                "error": "Failed to fetch odds.",
-                "details": response.text
-            }, status=response.status_code)
+            return JsonResponse(
+                {"error": "Failed to fetch odds.", "details": response.text},
+                status=response.status_code,
+            )
 
         games = response.json()
 
         games = games[:5]  # Limit for performance/testing
         opportunities = find_arbitrage(games)
-        opportunities.sort(key=lambda x: x['profit_percent'], reverse=True)
+        opportunities.sort(key=lambda x: x["profit_percent"], reverse=True)
         opportunities = opportunities[:5]
 
         return JsonResponse(opportunities, safe=False)
 
     except Exception as e:
-        return JsonResponse({
-            "error": "An unexpected error occurred.",
-            "details": str(e)
-        }, status=500)
+        return JsonResponse(
+            {"error": "An unexpected error occurred.", "details": str(e)}, status=500
+        )
 
 
-#Calculate stakes and profit based on odds + total stake
+# Calculate stakes and profit based on odds + total stake
+
 
 def calculate_arbitrage_stakes(request):
     try:
@@ -74,7 +73,9 @@ def calculate_arbitrage_stakes(request):
         total_implied = implied_1 + implied_2
 
         if total_implied >= 1:
-            return JsonResponse({"error": "No arbitrage possible with these odds."}, status=400)
+            return JsonResponse(
+                {"error": "No arbitrage possible with these odds."}, status=400
+            )
 
         # Stake allocation
         stake_team1 = round((implied_2 / total_implied) * total_stake, 2)
@@ -84,15 +85,18 @@ def calculate_arbitrage_stakes(request):
         payout = round(stake_team1 * odds_team1, 2)
         profit = round(payout - total_stake, 2)
 
-        return JsonResponse({
-            "team1_stake": stake_team1,
-            "team2_stake": stake_team2,
-            "guaranteed_profit": profit
-        })
+        return JsonResponse(
+            {
+                "team1_stake": stake_team1,
+                "team2_stake": stake_team2,
+                "guaranteed_profit": profit,
+            }
+        )
 
     except Exception as e:
-        return JsonResponse({"error": "Invalid request format", "details": str(e)}, status=400)
-
+        return JsonResponse(
+            {"error": "Invalid request format", "details": str(e)}, status=400
+        )
 
 
 #  FAKE TEST DATA # Remove: Later
@@ -110,10 +114,10 @@ def test_arbitrage_with_fake_data(request):
                             "key": "h2h",
                             "outcomes": [
                                 {"name": "Chicago Bulls", "price": 2.2},
-                                {"name": "Miami Heat", "price": 1.8}
-                            ]
+                                {"name": "Miami Heat", "price": 1.8},
+                            ],
                         }
-                    ]
+                    ],
                 },
                 {
                     "title": "FanDuel",
@@ -122,12 +126,12 @@ def test_arbitrage_with_fake_data(request):
                             "key": "h2h",
                             "outcomes": [
                                 {"name": "Chicago Bulls", "price": 2.4},
-                                {"name": "Miami Heat", "price": 1.7}
-                            ]
+                                {"name": "Miami Heat", "price": 1.7},
+                            ],
                         }
-                    ]
-                }
-            ]
+                    ],
+                },
+            ],
         }
     ]
 

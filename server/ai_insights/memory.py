@@ -2,15 +2,17 @@
 
 SESSION_KEY = "conversation_history"
 
+
 def get_conversation(session):
 
-   # Retrieve the conversation history from the session.
+    # Retrieve the conversation history from the session.
 
     return session.get(SESSION_KEY, [])
 
+
 def add_to_conversation(session, role, message):
 
-   # Append a message to the conversation history and save it back to the session.
+    # Append a message to the conversation history and save it back to the session.
 
     conversation = get_conversation(session)
     conversation.append({"role": role, "message": message})
