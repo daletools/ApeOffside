@@ -404,9 +404,22 @@ chat_session = genai.GenerativeModel("gemini-1.5-flash").start_chat(
 )
 
 
+def format_odds_as_html(odds_data, limit=5):
+    """Helper function to format odds data as an HTML table"""
+    table_rows = [
+        f"<tr><td>{game['home_team']}</td><td>{game['away_team']}</td><td>{game['bookmakers'][0]['markets'][0]['outcomes'][0]['price']}</td><td>{game['bookmakers'][0]['markets'][0]['outcomes'][1]['price']}</td></tr>"
+        for game in odds_data[:limit]  # Limit to specified number of games
+    ]
+    table_html = (
+        "<table border='1' style='border-collapse: collapse; width: 100%; text-align: left;'>"
+        "<thead><tr><th>Home Team</th><th>Away Team</th><th>Home Odds</th><th>Away Odds</th></tr></thead>"
+        "<tbody>" + "".join(table_rows) + "</tbody></table>"
+    )
+    return table_html
+
 # gemini_view function is used to handle requests to the Gemini API such as odds and statistics
 @csrf_exempt
-def gemini_view(request, players=None, player_name=None):
+def gemini_view(request):
     if request.method == "GET":
         try:
             user_message = request.GET.get("message", "").strip()
@@ -449,15 +462,7 @@ def gemini_view(request, players=None, player_name=None):
                         )
 
                     # Format the odds data as an HTML table
-                    table_rows = [
-                        f"<tr><td>{game['home_team']}</td><td>{game['away_team']}</td><td>{game['bookmakers'][0]['markets'][0]['outcomes'][0]['price']}</td><td>{game['bookmakers'][0]['markets'][0]['outcomes'][1]['price']}</td></tr>"
-                        for game in odds_data[:5]  # Limit to top 5 games
-                    ]
-                    table_html = (
-                        "<table border='1' style='border-collapse: collapse; width: 100%; text-align: left;'>"
-                        "<thead><tr><th>Home Team</th><th>Away Team</th><th>Home Odds</th><th>Away Odds</th></tr></thead>"
-                        "<tbody>" + "".join(table_rows) + "</tbody></table>"
-                    )
+                    table_html = format_odds_as_html(odds_data)
                     return JsonResponse(
                         {
                             "response": "Here are the current NBA team odds:",
@@ -476,15 +481,7 @@ def gemini_view(request, players=None, player_name=None):
                     return JsonResponse({"response": odds_data["error"]}, status=500)
 
                 # Format the odds data as an HTML table
-                table_rows = [
-                    f"<tr><td>{game['home_team']}</td><td>{game['away_team']}</td><td>{game['bookmakers'][0]['markets'][0]['outcomes'][0]['price']}</td><td>{game['bookmakers'][0]['markets'][0]['outcomes'][1]['price']}</td></tr>"
-                    for game in odds_data[:5]  # Limit to top 5 games
-                ]
-                table_html = (
-                    "<table border='1' style='border-collapse: collapse; width: 100%; text-align: left;'>"
-                    "<thead><tr><th>Home Team</th><th>Away Team</th><th>Home Odds</th><th>Away Odds</th></tr></thead>"
-                    "<tbody>" + "".join(table_rows) + "</tbody></table>"
-                )
+                table_html = format_odds_as_html(odds_data)
 
                 # Also get a response from Gemini for any other questions in the message
                 response = chat_session.send_message(user_message)
