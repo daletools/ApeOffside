@@ -15,8 +15,21 @@ from server.settings import GEMINI_KEY
 
 @csrf_exempt
 def fetch_player_insights(request):
+    """
+    Fetch and analyze player insights using NBA stats and betting odds data.
+    
+    Args:
+        request: HTTP request containing player name, current odds, and game context
+        
+    Returns:
+        JsonResponse containing player analysis, stats, and best odds recommendations
+        
+    Raises:
+        Exception: If there's an error processing the request or fetching data
+    """
     if request.method == "POST":
         try:
+            # Parse request data
             data = json.loads(request.body)
             player_name = data["playerName"]
             current_odds = data["currentOdds"]
@@ -278,7 +291,17 @@ def format_player_html(player_info):
 
 def format_analysis_as_html(analysis_text):
     """
-    Format the analysis text as HTML with a clean, consistent structure
+    Format the analysis text as HTML with a clean, consistent structure.
+    
+    Args:
+        analysis_text (str): Raw analysis text from Gemini API
+        
+    Returns:
+        str: HTML-formatted analysis with consistent styling and structure
+        
+    Note:
+        Formats text into sections with headings, tables, lists and paragraphs
+        while maintaining consistent styling across all elements.
     """
     if not analysis_text:
         return "<p>No analysis available</p>"
@@ -420,6 +443,22 @@ def format_odds_as_html(odds_data, limit=5):
 # gemini_view function is used to handle requests to the Gemini API such as odds and statistics
 @csrf_exempt
 def gemini_view(request):
+    """
+    Handle requests to the Gemini API for odds and statistics.
+
+    Args:
+        request: HTTP request containing message and prompt type parameters
+
+    Returns:
+        JsonResponse containing:
+        - Pre-made prompts if no message/prompt provided
+        - Betting advice for betting_advice prompt type
+        - Team odds for team_odds prompt type
+        - Custom responses for specific text queries
+        
+    Raises:
+        Exception: If there's an error processing the request or API communication
+    """
     if request.method == "GET":
         try:
             user_message = request.GET.get("message", "").strip()
