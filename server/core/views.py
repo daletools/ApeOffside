@@ -7,21 +7,6 @@ from django.http import JsonResponse, HttpResponse
 ODDS_BASE_URL = "https://api.the-odds-api.com"
 
 
-def default(request):
-    return HttpResponse("This is the default response to the Core endpoint")
-
-
-def fetch_nba_statistics(request):
-    url = "https://api-nba-v1.p.rapidapi.com/players/statistics"
-    querystring = {"game": "8133"}
-    headers = {
-        "x-rapidapi-key": "TODO: get historical stats api key",
-        "x-rapidapi-host": "api-nba-v1.p.rapidapi.com",
-    }
-    response = requests.get(url, headers=headers, params=querystring)
-    return JsonResponse(response.json())
-
-
 def fetch_sports(request):
     url = f"{ODDS_BASE_URL}/v4/sports/?apiKey={settings.API_KEY}"
     response = requests.get(url)

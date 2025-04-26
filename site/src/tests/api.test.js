@@ -1,4 +1,4 @@
-import { fetchSports, fetchCurrentGames, fetchOddsAPI } from '../services/api.jsx'; // Import your function
+import {fetchSports, fetchCurrentGames, fetchGameOdds} from '../services/api.jsx'; // Import your function
 
 describe('fetchSports', () => {
     it('should fetch sports data from the real API', async () => {
@@ -14,26 +14,25 @@ describe('fetchSports', () => {
 });
 
 describe('fetchCurrentGames', () => {
-    it('should fetch current games', () => {
-        const result = fetchCurrentGames('basketball_nba');
+    it('should fetch current games', async () => {
+        const result = await fetchCurrentGames('basketball_nba');
 
         expect(result).toBeDefined();
-        expect(Array.isArray(result)).toBe(true);
         if (result.length > 0) {
-            expect(result[0]).toHaveProperty('active');
-            expect(result[0]).toHaveProperty('key');
+            expect(result[0]).toHaveProperty('id');
+            expect(result[0]).toHaveProperty('sport_title');
         }
     })
 });
 
-// describe('fetchOdds', () => {
-//     it('should fetch odd for upcoming games', () => {
-//         const result = fetchOddsAPI('basketball_nba');
-//         expect(result).toBeDefined();
-//         expect(Array.isArray(result)).toBe(true);
-//         if (result.length > 0) {
-//             expect(result[0]).toHaveProperty('away-team');
-//             expect(result[0]).toHaveProperty('home-team');
-//         }
-//     })
-// })
+describe('fetchOdds', () => {
+    it('should fetch odds for an upcoming game', async () => {
+        const games = await fetchCurrentGames('basketball_nba');
+        const result = fetchGameOdds('basketball_nba', games[0].id, 'player_points');
+        expect(result).toBeDefined();
+        if (result.length > 0) {
+            expect(result[0]).toHaveProperty('away-team');
+            expect(result[0]).toHaveProperty('home-team');
+        }
+    })
+})
