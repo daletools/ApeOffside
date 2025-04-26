@@ -17,7 +17,6 @@ def fetch_player_prop_odds(sport, market_key, limit=5):
         list of dicts: Odds data per event
     """
     try:
-        # Step 1: Get a list of upcoming games/events
         events_url = f"{ODDS_BASE_URL}/v4/sports/{sport}/events/"
         events_response = requests.get(events_url, params={"apiKey": settings.API_KEY})
         events = events_response.json()[:limit]
