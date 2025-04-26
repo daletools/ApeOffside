@@ -1,7 +1,6 @@
 import json
 from unittest.mock import patch, MagicMock
 from django.test import TestCase, RequestFactory
-from django.http import JsonResponse
 from core.views import fetch_sports, fetch_current_games
 
 
