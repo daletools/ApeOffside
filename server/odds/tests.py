@@ -1,6 +1,8 @@
 # Create your tests here.
 import json
 import unittest
+
+import requests
 from django.core.cache import cache
 from django.http import JsonResponse
 
@@ -168,6 +170,18 @@ class OddsViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 500)
         data = json.loads(response.content)
         self.assertEqual(data["error"], "Failed to fetch odds")
+
+    @patch("requests.get")
+    def test_fetch_event_odds_network_error(self, mock_get):
+        """Test that network errors are caught."""
+        mock_get.side_effect = requests.exceptions.ConnectionError("Failed to connect")
+
+        request = self.factory.get("/fetch_event_odds/")
+        response = fetch_event_odds(request, self.sport, self.event_id, self.markets)
+
+        self.assertEqual(response.status_code, 500)
+        data = json.loads(response.content)
+        self.assertEqual(data["error"], "An unexpected error occurred")
 
     def tearDown(self):
         cache.clear()
